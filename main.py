@@ -6,6 +6,127 @@ from enum import Enum
 import math
 import random
 
+# ==================== ASSET GENERATOR ====================
+class AssetGenerator:
+    """Programmatically generate all game assets - exam-safe, no external files needed"""
+    
+    @staticmethod
+    def create_building_icon(icon_type, size=64):
+        """Generate building icons using shapes and colors"""
+        surface = pygame.Surface((size, size), pygame.SRCALPHA)
+        
+        if icon_type == "admin":
+            # Document/clipboard icon
+            pygame.draw.rect(surface, (255, 255, 255), (15, 10, 34, 44), border_radius=3)
+            pygame.draw.rect(surface, (100, 150, 255), (15, 10, 34, 44), 2, border_radius=3)
+            for i in range(3):
+                pygame.draw.line(surface, (100, 150, 255), (20, 20 + i*8), (44, 20 + i*8), 2)
+                
+        elif icon_type == "library":
+            # Book icon
+            pygame.draw.rect(surface, (200, 100, 50), (18, 15, 28, 34), border_radius=2)
+            pygame.draw.rect(surface, (150, 70, 30), (18, 15, 28, 34), 2, border_radius=2)
+            pygame.draw.line(surface, (255, 200, 150), (32, 15), (32, 49), 2)
+            for i in range(4):
+                pygame.draw.line(surface, (150, 70, 30), (20, 20 + i*7), (44, 20 + i*7), 1)
+                
+        elif icon_type == "food":
+            # Fork and knife icon
+            pygame.draw.rect(surface, (200, 200, 200), (22, 15, 3, 30))  # Fork handle
+            pygame.draw.rect(surface, (200, 200, 200), (39, 15, 3, 30))  # Knife handle
+            for i in range(3):
+                pygame.draw.rect(surface, (200, 200, 200), (20 + i*3, 10, 2, 8))  # Fork prongs
+            pygame.draw.polygon(surface, (220, 220, 220), [(39, 10), (42, 10), (40.5, 15)])  # Knife tip
+            
+        elif icon_type == "hostel":
+            # Bed icon
+            pygame.draw.rect(surface, (150, 100, 200), (12, 25, 40, 20), border_radius=3)
+            pygame.draw.circle(surface, (180, 130, 220), (20, 20), 6)  # Pillow
+            pygame.draw.rect(surface, (120, 80, 160), (10, 45, 4, 10))  # Leg
+            pygame.draw.rect(surface, (120, 80, 160), (50, 45, 4, 10))  # Leg
+            
+        elif icon_type == "lab":
+            # Beaker/flask icon
+            pygame.draw.polygon(surface, (100, 200, 255), [(28, 15), (36, 15), (40, 45), (24, 45)])
+            pygame.draw.rect(surface, (80, 160, 200), (24, 35, 16, 10))  # Liquid
+            pygame.draw.circle(surface, (100, 200, 255), (32, 12), 3)  # Stopper
+            
+        elif icon_type == "innovation":
+            # Lightbulb icon
+            pygame.draw.circle(surface, (255, 220, 100), (32, 25), 12)
+            pygame.draw.rect(surface, (200, 200, 200), (28, 37, 8, 12), border_radius=2)
+            pygame.draw.line(surface, (255, 240, 150), (26, 25), (38, 25), 2)
+            
+        elif icon_type == "computer":
+            # Computer/monitor icon
+            pygame.draw.rect(surface, (100, 100, 100), (16, 15, 32, 24), border_radius=2)
+            pygame.draw.rect(surface, (150, 200, 255), (18, 17, 28, 20))  # Screen
+            pygame.draw.rect(surface, (80, 80, 80), (28, 39, 8, 8))  # Stand
+            
+        elif icon_type == "default":
+            # Generic building icon
+            pygame.draw.rect(surface, (150, 150, 200), (16, 20, 32, 28), border_radius=3)
+            pygame.draw.rect(surface, (100, 150, 255), (22, 26, 8, 8))  # Window
+            pygame.draw.rect(surface, (100, 150, 255), (34, 26, 8, 8))  # Window
+            pygame.draw.rect(surface, (80, 80, 120), (28, 38, 8, 10))  # Door
+            
+        return surface
+    
+    @staticmethod
+    def create_player_sprite(frame=0, size=32):
+        """Generate animated player sprite"""
+        surface = pygame.Surface((size, size), pygame.SRCALPHA)
+        
+        # Body (circle)
+        bounce = math.sin(frame * 0.3) * 2 if frame > 0 else 0
+        center_y = size // 2 - int(bounce)
+        
+        # Shadow
+        shadow = pygame.Surface((size, size // 4), pygame.SRCALPHA)
+        pygame.draw.ellipse(shadow, (0, 0, 0, 80), (4, 0, size - 8, size // 4))
+        surface.blit(shadow, (0, size - size // 4))
+        
+        # Body
+        pygame.draw.circle(surface, (255, 100, 100), (size // 2, center_y), size // 3)
+        pygame.draw.circle(surface, (255, 150, 150), (size // 2, center_y), size // 3, 2)
+        
+        # Eyes
+        eye_offset = 2 if frame % 2 == 0 else 0
+        pygame.draw.circle(surface, (50, 50, 50), (size // 2 - 4, center_y - 2), 2)
+        pygame.draw.circle(surface, (50, 50, 50), (size // 2 + 4, center_y - 2), 2)
+        
+        return surface
+    
+    @staticmethod
+    def create_texture(texture_type, size=32):
+        """Generate tileable textures"""
+        surface = pygame.Surface((size, size))
+        
+        if texture_type == "brick":
+            # Brick pattern
+            surface.fill((120, 80, 100))
+            for y in range(0, size, 8):
+                offset = 16 if (y // 8) % 2 == 0 else 0
+                for x in range(-16 + offset, size, 16):
+                    pygame.draw.rect(surface, (100, 60, 80), (x, y, 14, 6))
+                    
+        elif texture_type == "path":
+            # Stone/concrete path
+            surface.fill((60, 65, 80))
+            for _ in range(20):
+                x, y = random.randint(0, size-1), random.randint(0, size-1)
+                c = random.randint(50, 70)
+                pygame.draw.circle(surface, (c, c+5, c+10), (x, y), 1)
+                
+        return surface
+    
+    @staticmethod
+    def create_particle(color, size=4):
+        """Create particle for effects"""
+        surface = pygame.Surface((size*2, size*2), pygame.SRCALPHA)
+        pygame.draw.circle(surface, color, (size, size), size)
+        return surface
+
 # Data Structure 1: 2D Array for RVCE campus grid
 class RVCEGameMap:
     def __init__(self, width, height):
@@ -47,7 +168,6 @@ class RVCEGraph:
             for x in range(game_map.width):
                 if game_map.is_walkable(x, y):
                     current = (x, y)
-                    # Connect to adjacent walkable cells
                     for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
                         nx, ny = x + dx, y + dy
                         if (0 <= nx < game_map.width and 
@@ -143,42 +263,126 @@ class GameState(Enum):
     GAME_OVER = 3
     VICTORY = 4
 
+# Particle system for visual effects
+class Particle:
+    def __init__(self, x, y, color, velocity):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.vx, self.vy = velocity
+        self.life = 1.0
+        self.size = random.randint(2, 5)
+        
+    def update(self, dt):
+        self.x += self.vx * dt
+        self.y += self.vy * dt
+        self.vy += 200 * dt  # Gravity
+        self.life -= dt * 2
+        return self.life > 0
+    
+    def draw(self, screen):
+        alpha = int(self.life * 255)
+        color = (*self.color[:3], alpha)
+        s = pygame.Surface((self.size*2, self.size*2), pygame.SRCALPHA)
+        pygame.draw.circle(s, color, (self.size, self.size), self.size)
+        screen.blit(s, (int(self.x - self.size), int(self.y - self.size)))
+
 class RVCECampusRunner:
     def __init__(self):
         pygame.init()
-        self.screen_width = 1000
-        self.screen_height = 700
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        pygame.display.set_caption("RVCE Campus Runner - A* vs BFS Pathfinding")
+        # Fullscreen mode
+        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        self.screen_width = self.screen.get_width()
+        self.screen_height = self.screen.get_height()
+        pygame.display.set_caption("RVCE Campus Runner - Pathfinding Adventure")
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont('Arial', 14)
-        self.large_font = pygame.font.SysFont('Arial', 18)
-        self.title_font = pygame.font.SysFont('Arial', 24, bold=True)
         
+        # Professional fonts
+        self.font = pygame.font.SysFont('Segoe UI', 16)
+        self.large_font = pygame.font.SysFont('Segoe UI', 22, bold=True)
+        self.title_font = pygame.font.SysFont('Segoe UI', 32, bold=True)
+        self.small_font = pygame.font.SysFont('Segoe UI', 14)
+        self.huge_font = pygame.font.SysFont('Segoe UI', 48, bold=True)
+        
+        # Animation variables
+        self.animation_time = 0
+        self.pulse_offset = 0
+        self.player_frame = 0
+        self.path_animation = 0
+        
+        # Particle system
+        self.particles = []
+        
+        # Generate all assets
+        self.load_assets()
+        
+        self.reset_game()
+        
+    def load_assets(self):
+        """Generate all visual assets programmatically"""
+        print("Generating game assets...")
+        
+        # Building icons
+        self.building_icons = {
+            "Admin Block": AssetGenerator.create_building_icon("admin"),
+            "Library": AssetGenerator.create_building_icon("library"),
+            "Food Court (MINGOS)": AssetGenerator.create_building_icon("food"),
+            "Boys Hostel": AssetGenerator.create_building_icon("hostel"),
+            "DTL Innovation Hub": AssetGenerator.create_building_icon("innovation"),
+            "AI-ML & MCA Dept": AssetGenerator.create_building_icon("lab"),
+            "Mechanical Dept": AssetGenerator.create_building_icon("computer"),
+            "BT Quadrangle": AssetGenerator.create_building_icon("lab"),
+            "BT & EIE Dept": AssetGenerator.create_building_icon("computer"),
+            "IEM Dept": AssetGenerator.create_building_icon("computer"),
+            "EEE Dept": AssetGenerator.create_building_icon("computer"),
+            "CSE Dept": AssetGenerator.create_building_icon("computer"),
+            "ECE Dept": AssetGenerator.create_building_icon("computer"),
+            "Main Gate": AssetGenerator.create_building_icon("default"),
+            "Incubation Center": AssetGenerator.create_building_icon("innovation"),
+        }
+        
+        # Player sprites (animation frames)
+        self.player_sprites = [
+            AssetGenerator.create_player_sprite(i) for i in range(4)
+        ]
+        
+        # Textures
+        self.brick_texture = AssetGenerator.create_texture("brick")
+        self.path_texture = AssetGenerator.create_texture("path")
+        
+        print("✓ Assets generated successfully!")
+        
+    def reset_game(self):
+        """Properly reset the game state"""
         # Initialize data structures
         self.game_map = RVCEGameMap(20, 18)
         self.nav_graph = RVCEGraph()
         self.undo_stack = UndoStack()
         self.task_manager = TaskManager()
-        self.bfs_queue = BFSQueue()
-        self.priority_queue = PriorityQueue()
+        
+        # Calculate cell size
+        map_area_width = self.screen_width - 500
+        map_area_height = self.screen_height - 100
+        self.game_map.cell_size = min(map_area_width // 20, map_area_height // 18)
         
         # Game state
         self.state = GameState.PLAYING
-        self.player_pos = (2, 15)  # Start near Main Gate
+        self.player_pos = (2, 15)
         self.score = 0
-        self.time_remaining = 300  # 5 minutes
+        self.time_remaining = 300
         self.last_time = pygame.time.get_ticks()
         
         self.current_path = []
         self.path_algorithm = "BFS"
         self.algorithm_stats = {"BFS": 0, "A*": 0}
         
+        # Clear particles
+        self.particles = []
+        
         self.setup_rvce_campus()
         self.setup_academic_tasks()
         
     def setup_rvce_campus(self):
-        # RVCE Campus Layout (0=path, 1=buildings, 2=items, 3=special)
         map_data = [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
             [1,0,0,0,0,0,1,1,1,0,0,0,1,1,1,0,0,0,0,1],
@@ -203,27 +407,26 @@ class RVCECampusRunner:
         self.game_map.load_rvce_map(map_data)
         self.nav_graph.build_from_rvce_grid(self.game_map)
         
-        # RVCE Building Locations
+        # Building locations - ON WALKABLE PATHS
         self.buildings = {
             "Main Gate": (2, 15),
-            "Admin Block": (4, 3),
-            "DTL Innovation Hub": (7, 2),
-            "Mechanical Dept": (12, 2),
-            "BT Quadrangle": (8, 5),
-            "AI-ML & MCA Dept": (15, 4),
-            "BT & EIE Dept": (17, 6),
-            "IEM Dept": (5, 7),
-            "EEE Dept": (10, 8),
-            "CSE Dept": (15, 9),
-            "ECE Dept": (8, 11),
-            "Library": (12, 12),
-            "Food Court (MINGOS)": (5, 13),
-            "Boys Hostel": (17, 14),
-            "Incubation Center": (14, 16)
+            "Admin Block": (3, 3),
+            "DTL Innovation Hub": (6, 3),
+            "Mechanical Dept": (11, 3),
+            "BT Quadrangle": (7, 5),
+            "AI-ML & MCA Dept": (14, 5),
+            "BT & EIE Dept": (16, 7),
+            "IEM Dept": (4, 7),
+            "EEE Dept": (9, 7),
+            "CSE Dept": (14, 9),
+            "ECE Dept": (7, 11),
+            "Library": (11, 13),
+            "Food Court (MINGOS)": (4, 13),
+            "Boys Hostel": (16, 15),
+            "Incubation Center": (13, 15)
         }
         
     def setup_academic_tasks(self):
-        # Academic Tasks with Riddles
         tasks = {
             "task1": {
                 "id": "task1",
@@ -286,34 +489,33 @@ class RVCECampusRunner:
         for task_id, task_data in tasks.items():
             self.task_manager.add_task(task_id, task_data)
         
-        # Assign first task
         first_task = self.task_manager.get_next_task()
         if first_task:
             self.task_manager.assign_task(first_task)
     
     def heuristic(self, a, b):
-        """Manhattan distance heuristic for A* algorithm"""
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
     
     def find_path_bfs(self, start, goal):
-        """BFS Algorithm - Finds shortest path (unweighted)"""
+        """BFS Algorithm"""
         visited = set()
         parent = {}
         nodes_explored = 0
         
-        self.bfs_queue.enqueue(start)
+        bfs_queue = BFSQueue()
+        bfs_queue.enqueue(start)
         visited.add(start)
         
-        while not self.bfs_queue.is_empty():
-            current = self.bfs_queue.dequeue()
+        while not bfs_queue.is_empty():
+            current = bfs_queue.dequeue()
             nodes_explored += 1
             
             if current == goal:
-                # Reconstruct path
                 path = []
                 while current in parent:
                     path.append(current)
                     current = parent[current]
+                path.append(start)
                 self.algorithm_stats["BFS"] = nodes_explored
                 return path[::-1]
             
@@ -321,13 +523,13 @@ class RVCECampusRunner:
                 if neighbor not in visited:
                     visited.add(neighbor)
                     parent[neighbor] = current
-                    self.bfs_queue.enqueue(neighbor)
+                    bfs_queue.enqueue(neighbor)
         
         self.algorithm_stats["BFS"] = nodes_explored
         return []
     
     def find_path_astar(self, start, goal):
-        """A* Algorithm - Finds shortest path with heuristic"""
+        """A* Algorithm"""
         open_set = PriorityQueue()
         open_set.push(start, 0)
         came_from = {}
@@ -340,16 +542,16 @@ class RVCECampusRunner:
             nodes_explored += 1
             
             if current == goal:
-                # Reconstruct path
                 path = []
                 while current in came_from:
                     path.append(current)
                     current = came_from[current]
+                path.append(start)
                 self.algorithm_stats["A*"] = nodes_explored
                 return path[::-1]
             
             for neighbor in self.nav_graph.adj_list[current]:
-                tentative_g_score = g_score[current] + 1  # All edges weight 1
+                tentative_g_score = g_score[current] + 1
                 
                 if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
                     came_from[neighbor] = current
@@ -360,6 +562,17 @@ class RVCECampusRunner:
         self.algorithm_stats["A*"] = nodes_explored
         return []
     
+    def spawn_celebration_particles(self, x, y):
+        """Spawn particles for task completion"""
+        colors = [(255, 215, 0), (255, 255, 100), (255, 200, 50)]
+        for _ in range(20):
+            angle = random.uniform(0, 2 * math.pi)
+            speed = random.uniform(50, 150)
+            vx = math.cos(angle) * speed
+            vy = math.sin(angle) * speed - 100
+            color = random.choice(colors)
+            self.particles.append(Particle(x, y, color, (vx, vy)))
+    
     def check_task_completion(self):
         if not self.task_manager.current_task:
             return
@@ -369,17 +582,26 @@ class RVCECampusRunner:
         
         if target_building in self.buildings:
             target_pos = self.buildings[target_building]
+            
             if self.player_pos == target_pos:
-                # Task completed!
+                # Task completed - spawn celebration!
+                map_offset_x = 50
+                map_offset_y = (self.screen_height - self.game_map.height * self.game_map.cell_size) // 2
+                px = target_pos[0] * self.game_map.cell_size + map_offset_x + self.game_map.cell_size // 2
+                py = target_pos[1] * self.game_map.cell_size + map_offset_y + self.game_map.cell_size // 2
+                self.spawn_celebration_particles(px, py)
+                
+                print(f"✓ Task Completed: {current_task['name']} (+{current_task['points']} points)")
                 self.score += current_task['points']
                 self.task_manager.complete_task(current_task['id'])
+                self.current_path = []
                 
-                # Assign next task
                 next_task = self.task_manager.get_next_task()
                 if next_task:
                     self.task_manager.assign_task(next_task)
+                    print(f"New task assigned: {self.task_manager.current_task['name']}")
                 else:
-                    # All tasks completed!
+                    print("All tasks completed! Victory!")
                     self.state = GameState.VICTORY
     
     def handle_input(self):
@@ -387,56 +609,72 @@ class RVCECampusRunner:
             if event.type == pygame.QUIT:
                 return False
             elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return False
+                    
                 if self.state == GameState.PLAYING:
-                    self.undo_stack.push({
-                        'position': self.player_pos,
-                        'score': self.score
-                    })
+                    # Handle movement keys
+                    if event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]:
+                        self.undo_stack.push({
+                            'position': self.player_pos,
+                            'score': self.score
+                        })
+                        
+                        x, y = self.player_pos
+                        new_x, new_y = x, y
+                        
+                        if event.key == pygame.K_UP:
+                            new_y -= 1
+                        elif event.key == pygame.K_DOWN:
+                            new_y += 1
+                        elif event.key == pygame.K_LEFT:
+                            new_x -= 1
+                        elif event.key == pygame.K_RIGHT:
+                            new_x += 1
+                        
+                        if self.game_map.is_walkable(new_x, new_y):
+                            self.player_pos = (new_x, new_y)
+                            self.player_frame += 1
+                            self.check_task_completion()
                     
-                    x, y = self.player_pos
-                    new_x, new_y = x, y
-                    
-                    if event.key == pygame.K_UP:
-                        new_y -= 1
-                    elif event.key == pygame.K_DOWN:
-                        new_y += 1
-                    elif event.key == pygame.K_LEFT:
-                        new_x -= 1
-                    elif event.key == pygame.K_RIGHT:
-                        new_x += 1
+                    # Handle other commands
                     elif event.key == pygame.K_u:
                         self.undo_move()
-                    elif event.key == pygame.K_b:  # BFS
+                    elif event.key == pygame.K_b:
                         if self.task_manager.current_task:
                             target = self.buildings[self.task_manager.current_task['building']]
                             self.current_path = self.find_path_bfs(self.player_pos, target)
                             self.path_algorithm = "BFS"
-                            print(f"BFS Path Found! Nodes explored: {self.algorithm_stats['BFS']}")
-                    elif event.key == pygame.K_a:  # A*
+                            print(f"✓ BFS Path: {len(self.current_path)} cells, {self.algorithm_stats['BFS']} nodes explored")
+                    elif event.key == pygame.K_a:
                         if self.task_manager.current_task:
                             target = self.buildings[self.task_manager.current_task['building']]
                             self.current_path = self.find_path_astar(self.player_pos, target)
                             self.path_algorithm = "A*"
-                            print(f"A* Path Found! Nodes explored: {self.algorithm_stats['A*']}")
+                            print(f"✓ A* Path: {len(self.current_path)} cells, {self.algorithm_stats['A*']} nodes explored")
                     elif event.key == pygame.K_c:
                         self.current_path = []
                     elif event.key == pygame.K_p:
                         self.state = GameState.PAUSED
-                    elif event.key == pygame.K_n:  # Next task
+                    elif event.key == pygame.K_n:
                         next_task = self.task_manager.get_next_task()
                         if next_task:
                             self.task_manager.assign_task(next_task)
-                    
-                    if self.game_map.is_walkable(new_x, new_y):
-                        self.player_pos = (new_x, new_y)
-                        self.check_task_completion()
+                            self.current_path = []
+                    elif event.key == pygame.K_r:
+                        self.reset_game()
+                        return True
                 
                 elif self.state == GameState.PAUSED:
                     if event.key == pygame.K_p:
                         self.state = GameState.PLAYING
-                elif self.state == GameState.VICTORY:
+                    elif event.key == pygame.K_r:
+                        self.reset_game()
+                        return True
+                elif self.state == GameState.VICTORY or self.state == GameState.GAME_OVER:
                     if event.key == pygame.K_r:
-                        self.__init__()  # Restart game
+                        self.reset_game()
+                        return True
         
         return True
     
@@ -447,222 +685,351 @@ class RVCECampusRunner:
             self.score = previous_state['score']
     
     def update(self):
+        dt = self.clock.get_time() / 1000.0
+        
         if self.state != GameState.PLAYING:
             return
             
         # Update timer
         current_time = pygame.time.get_ticks()
-        if current_time - self.last_time > 1000:  # 1 second
+        if current_time - self.last_time > 1000:
             self.time_remaining -= 1
             self.last_time = current_time
             
             if self.time_remaining <= 0:
                 self.state = GameState.GAME_OVER
+        
+        # Update animations
+        self.animation_time = current_time / 1000.0
+        self.pulse_offset = math.sin(self.animation_time * 3) * 3
+        self.path_animation = (self.path_animation + 1) % 60
+        
+        # Update particles
+        self.particles = [p for p in self.particles if p.update(dt)]
+    
+    def draw_gradient_background(self):
+        for y in range(self.screen_height):
+            progress = y / self.screen_height
+            r = int(10 + progress * 15)
+            g = int(15 + progress * 20)
+            b = int(30 + progress * 25)
+            pygame.draw.line(self.screen, (r, g, b), (0, y), (self.screen_width, y))
     
     def draw(self):
-        self.screen.fill((25, 25, 50))
+        # Background
+        self.draw_gradient_background()
         
-        # Draw campus map
+        # Calculate map offset
+        map_width = self.game_map.width * self.game_map.cell_size
+        map_height = self.game_map.height * self.game_map.cell_size
+        map_offset_x = 50
+        map_offset_y = (self.screen_height - map_height) // 2
+        
+        # Draw map shadow
+        shadow_rect = pygame.Rect(map_offset_x + 5, map_offset_y + 5, map_width, map_height)
+        shadow_surface = pygame.Surface((map_width, map_height))
+        shadow_surface.set_alpha(100)
+        shadow_surface.fill((0, 0, 0))
+        self.screen.blit(shadow_surface, (shadow_rect.x, shadow_rect.y))
+        
+        # Draw campus map with textures
         for y in range(self.game_map.height):
             for x in range(self.game_map.width):
                 rect = pygame.Rect(
-                    x * self.game_map.cell_size + 10,
-                    y * self.game_map.cell_size + 10,
-                    self.game_map.cell_size - 2,
-                    self.game_map.cell_size - 2
+                    x * self.game_map.cell_size + map_offset_x,
+                    y * self.game_map.cell_size + map_offset_y,
+                    self.game_map.cell_size,
+                    self.game_map.cell_size
                 )
                 
                 cell_value = self.game_map.get_cell_value(x, y)
                 if cell_value == 1:
-                    pygame.draw.rect(self.screen, (80, 80, 140), rect)
+                    # Buildings with brick texture
+                    texture = pygame.transform.scale(self.brick_texture, (self.game_map.cell_size, self.game_map.cell_size))
+                    self.screen.blit(texture, rect.topleft)
                 else:
-                    pygame.draw.rect(self.screen, (50, 50, 90), rect)
+                    # Paths with stone texture
+                    texture = pygame.transform.scale(self.path_texture, (self.game_map.cell_size, self.game_map.cell_size))
+                    self.screen.blit(texture, rect.topleft)
                 
-                pygame.draw.rect(self.screen, (30, 30, 60), rect, 1)
+                pygame.draw.rect(self.screen, (20, 25, 35), rect, 1)
         
-        # Draw buildings
+        # Draw animated path
+        if len(self.current_path) > 0:
+            path_color = (50, 255, 100) if self.path_algorithm == "BFS" else (100, 150, 255)
+            
+            for i, pos in enumerate(self.current_path):
+                x, y = pos
+                rect = pygame.Rect(
+                    x * self.game_map.cell_size + map_offset_x,
+                    y * self.game_map.cell_size + map_offset_y,
+                    self.game_map.cell_size,
+                    self.game_map.cell_size
+                )
+                
+                # Animated glow
+                anim_offset = (self.path_animation - i * 3) % 60
+                alpha = int(100 + 50 * math.sin(anim_offset / 10))
+                
+                path_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+                path_surface.fill((*path_color, alpha))
+                self.screen.blit(path_surface, rect.topleft)
+                
+                # Border
+                pygame.draw.rect(self.screen, path_color, rect, 2)
+        
+        # Draw buildings with icons
         for name, pos in self.buildings.items():
             x, y = pos
             rect = pygame.Rect(
-                x * self.game_map.cell_size + 10,
-                y * self.game_map.cell_size + 10,
-                self.game_map.cell_size - 2,
-                self.game_map.cell_size - 2
+                x * self.game_map.cell_size + map_offset_x,
+                y * self.game_map.cell_size + map_offset_y,
+                self.game_map.cell_size,
+                self.game_map.cell_size
             )
-            pygame.draw.rect(self.screen, (120, 80, 160), rect)
             
-            # Draw building label
-            if self.game_map.cell_size > 30:
-                label = self.font.render(name[:3], True, (255, 255, 255))
-                self.screen.blit(label, (rect.x + 2, rect.y + 2))
+            is_target = (self.task_manager.current_task and 
+                        self.task_manager.current_task['building'] == name)
+            
+            if is_target:
+                # Pulsing glow
+                pulse_size = int(self.pulse_offset)
+                glow_rect = rect.inflate(12 + pulse_size, 12 + pulse_size)
+                glow_surface = pygame.Surface((glow_rect.width, glow_rect.height), pygame.SRCALPHA)
+                glow_surface.fill((255, 200, 0, 120))
+                self.screen.blit(glow_surface, (glow_rect.x, glow_rect.y))
+                
+                # Yellow background
+                pygame.draw.rect(self.screen, (255, 220, 50), rect, border_radius=4)
+            else:
+                # Subtle background
+                pygame.draw.rect(self.screen, (80, 70, 120), rect, border_radius=4)
+            
+            # Draw icon
+            if name in self.building_icons:
+                icon = self.building_icons[name]
+                icon_scaled = pygame.transform.scale(icon, (self.game_map.cell_size - 8, self.game_map.cell_size - 8))
+                self.screen.blit(icon_scaled, (rect.x + 4, rect.y + 4))
         
-        # Draw path with different colors for different algorithms
-        path_color = (0, 200, 0) if self.path_algorithm == "BFS" else (0, 100, 255)
-        for pos in self.current_path:
-            x, y = pos
-            rect = pygame.Rect(
-                x * self.game_map.cell_size + 10,
-                y * self.game_map.cell_size + 10,
-                self.game_map.cell_size - 2,
-                self.game_map.cell_size - 2
-            )
-            pygame.draw.rect(self.screen, path_color, rect, 3)
-        
-        # Draw player
+        # Draw player with animation
         x, y = self.player_pos
         player_rect = pygame.Rect(
-            x * self.game_map.cell_size + 10,
-            y * self.game_map.cell_size + 10,
-            self.game_map.cell_size - 2,
-            self.game_map.cell_size - 2
+            x * self.game_map.cell_size + map_offset_x,
+            y * self.game_map.cell_size + map_offset_y,
+            self.game_map.cell_size,
+            self.game_map.cell_size
         )
-        pygame.draw.rect(self.screen, (255, 50, 50), player_rect)
         
-        self.draw_dashboard()
+        # Get animated sprite
+        sprite_index = (self.player_frame // 5) % len(self.player_sprites)
+        player_sprite = pygame.transform.scale(self.player_sprites[sprite_index], 
+                                               (self.game_map.cell_size, self.game_map.cell_size))
+        self.screen.blit(player_sprite, player_rect.topleft)
+        
+        # Draw particles
+        for particle in self.particles:
+            particle.draw(self.screen)
+        
+        self.draw_dashboard(map_offset_x, map_width)
         pygame.display.flip()
     
-    def draw_dashboard(self):
-        # Main dashboard area
-        dashboard_rect = pygame.Rect(720, 10, 270, 680)
-        pygame.draw.rect(self.screen, (40, 40, 80), dashboard_rect)
-        pygame.draw.rect(self.screen, (70, 70, 120), dashboard_rect, 2)
+    def draw_dashboard(self, map_offset_x, map_width):
+        # Dashboard positioning
+        dashboard_x = map_offset_x + map_width + 30
+        dashboard_width = self.screen_width - dashboard_x - 30
+        dashboard_rect = pygame.Rect(dashboard_x, 30, dashboard_width, self.screen_height - 60)
         
-        y_offset = 20
+        # Dashboard background
+        dashboard_surface = pygame.Surface((dashboard_width, self.screen_height - 60))
+        for y in range(self.screen_height - 60):
+            progress = y / (self.screen_height - 60)
+            r = int(25 + progress * 10)
+            g = int(30 + progress * 10)
+            b = int(50 + progress * 15)
+            pygame.draw.line(dashboard_surface, (r, g, b), (0, y), (dashboard_width, y))
+        self.screen.blit(dashboard_surface, (dashboard_x, 30))
+        
+        pygame.draw.rect(self.screen, (70, 80, 120), dashboard_rect, 3, border_radius=15)
+        
+        x_offset = dashboard_x + 20
+        y_offset = 50
         
         # Title
-        title = self.title_font.render("RVCE CAMPUS RUNNER", True, (255, 255, 0))
-        self.screen.blit(title, (730, y_offset))
+        title = self.huge_font.render("RVCE", True, (100, 200, 255))
+        self.screen.blit(title, (x_offset, y_offset))
+        y_offset += 55
+        
+        subtitle = self.large_font.render("Campus Runner", True, (200, 220, 255))
+        self.screen.blit(subtitle, (x_offset, y_offset))
+        y_offset += 50
+        
+        # Score card
+        self.draw_card(x_offset - 10, y_offset - 5, dashboard_width - 20, 40, (40, 50, 70))
+        score_text = self.large_font.render(f"⭐ SCORE: {self.score}", True, (255, 220, 100))
+        self.screen.blit(score_text, (x_offset, y_offset))
+        y_offset += 50
+        
+        # Time card with progress
+        time_color = (100, 255, 150) if self.time_remaining > 60 else (255, 100, 100)
+        time_text = self.large_font.render(f"⏱ TIME: {self.time_remaining}s", True, time_color)
+        self.screen.blit(time_text, (x_offset, y_offset))
+        y_offset += 35
+        
+        # Time progress bar
+        bar_width = dashboard_width - 40
+        bar_height = 15
+        progress = max(0, self.time_remaining / 300)
+        self.draw_progress_bar(x_offset, y_offset, bar_width, bar_height, progress, time_color)
         y_offset += 40
         
-        # Score and Time
-        score_text = self.large_font.render(f"SCORE: {self.score}", True, (255, 255, 255))
-        self.screen.blit(score_text, (730, y_offset))
-        y_offset += 30
+        # Separator
+        pygame.draw.line(self.screen, (60, 70, 100), (x_offset, y_offset), 
+                        (x_offset + dashboard_width - 40, y_offset), 2)
+        y_offset += 25
         
-        time_color = (255, 255, 255) if self.time_remaining > 60 else (255, 100, 100)
-        time_text = self.large_font.render(f"TIME: {self.time_remaining}s", True, time_color)
-        self.screen.blit(time_text, (730, y_offset))
-        y_offset += 40
+        # Algorithm section
+        algo_title = self.large_font.render("🔍 PATHFINDING", True, (150, 200, 255))
+        self.screen.blit(algo_title, (x_offset, y_offset))
+        y_offset += 35
         
-        # Algorithm Info
-        algo_title = self.large_font.render("PATHFINDING ALGORITHMS:", True, (255, 200, 100))
-        self.screen.blit(algo_title, (730, y_offset))
-        y_offset += 30
+        bfs_color = (100, 255, 150) if self.path_algorithm == "BFS" else (100, 100, 100)
+        astar_color = (150, 180, 255) if self.path_algorithm == "A*" else (100, 100, 100)
         
-        bfs_color = (0, 255, 0) if self.path_algorithm == "BFS" else (150, 150, 150)
-        astar_color = (100, 150, 255) if self.path_algorithm == "A*" else (150, 150, 150)
+        bfs_text = self.font.render("● BFS (B) - Green", True, bfs_color)
+        self.screen.blit(bfs_text, (x_offset, y_offset))
+        y_offset += 25
         
-        bfs_text = self.font.render("BFS (B key) - Green Path", True, bfs_color)
-        self.screen.blit(bfs_text, (730, y_offset))
-        y_offset += 20
-        
-        astar_text = self.font.render("A* (A key) - Blue Path", True, astar_color)
-        self.screen.blit(astar_text, (730, y_offset))
-        y_offset += 20
+        astar_text = self.font.render("● A* (A) - Blue", True, astar_color)
+        self.screen.blit(astar_text, (x_offset, y_offset))
+        y_offset += 25
         
         if self.current_path:
-            algo_text = self.font.render(f"Active: {self.path_algorithm}", True, (255, 255, 255))
-            self.screen.blit(algo_text, (730, y_offset))
-            y_offset += 20
+            self.draw_card(x_offset - 5, y_offset - 3, dashboard_width - 30, 45, (40, 60, 40))
+            active_text = self.font.render(f"✓ {self.path_algorithm} ACTIVE", True, (150, 255, 150))
+            self.screen.blit(active_text, (x_offset, y_offset))
+            y_offset += 22
             
-            nodes_text = self.font.render(f"Nodes explored: {self.algorithm_stats[self.path_algorithm]}", True, (200, 200, 255))
-            self.screen.blit(nodes_text, (730, y_offset))
-            y_offset += 20
+            stats_text = self.small_font.render(
+                f"{len(self.current_path)} cells | {self.algorithm_stats[self.path_algorithm]} nodes", 
+                True, (180, 220, 180))
+            self.screen.blit(stats_text, (x_offset, y_offset))
+            y_offset += 28
+        else:
+            no_path = self.small_font.render("Press B or A to show path", True, (120, 120, 120))
+            self.screen.blit(no_path, (x_offset, y_offset))
+            y_offset += 25
         
-        y_offset += 20
+        y_offset += 15
         
-        # Current Task
-        task_title = self.large_font.render("CURRENT MISSION:", True, (255, 200, 100))
-        self.screen.blit(task_title, (730, y_offset))
-        y_offset += 30
+        # Current Mission
+        pygame.draw.line(self.screen, (60, 70, 100), (x_offset, y_offset), 
+                        (x_offset + dashboard_width - 40, y_offset), 2)
+        y_offset += 25
+        
+        mission_title = self.large_font.render("🎯 MISSION", True, (255, 200, 100))
+        self.screen.blit(mission_title, (x_offset, y_offset))
+        y_offset += 35
         
         if self.task_manager.current_task:
             task = self.task_manager.current_task
-            task_name = self.font.render(f"Task: {task['name']}", True, (200, 255, 200))
-            self.screen.blit(task_name, (730, y_offset))
-            y_offset += 25
+            
+            self.draw_card(x_offset - 10, y_offset - 5, dashboard_width - 20, 30, (50, 60, 80))
+            task_name = self.font.render(task['name'], True, (150, 255, 150))
+            self.screen.blit(task_name, (x_offset, y_offset))
+            y_offset += 40
             
             # Riddle
             riddle_lines = task['riddle'].split('\n')
             for line in riddle_lines:
-                riddle_text = self.font.render(line, True, (255, 255, 200))
-                self.screen.blit(riddle_text, (730, y_offset))
+                riddle_text = self.small_font.render(line, True, (255, 255, 180))
+                self.screen.blit(riddle_text, (x_offset, y_offset))
                 y_offset += 20
             
             y_offset += 10
             
-            building_text = self.font.render(f"Building: {task['building']}", True, (200, 200, 255))
-            self.screen.blit(building_text, (730, y_offset))
+            building_text = self.font.render(f"📍 {task['building']}", True, (150, 180, 255))
+            self.screen.blit(building_text, (x_offset, y_offset))
             y_offset += 25
             
-            points_text = self.font.render(f"Points: {task['points']}", True, (255, 200, 100))
-            self.screen.blit(points_text, (730, y_offset))
-            y_offset += 25
-            
-            hint_text = self.font.render(f"Hint: {task['hint']}", True, (200, 200, 200))
-            self.screen.blit(hint_text, (730, y_offset))
-            y_offset += 40
-        else:
-            no_task = self.font.render("No active task", True, (200, 200, 200))
-            self.screen.blit(no_task, (730, y_offset))
-            y_offset += 40
+            points_text = self.font.render(f"💎 {task['points']} points", True, (255, 200, 100))
+            self.screen.blit(points_text, (x_offset, y_offset))
+            y_offset += 35
         
-        # Completed Tasks
-        completed_title = self.large_font.render("COMPLETED TASKS:", True, (100, 255, 100))
-        self.screen.blit(completed_title, (730, y_offset))
-        y_offset += 30
+        # Progress
+        pygame.draw.line(self.screen, (60, 70, 100), (x_offset, y_offset), 
+                        (x_offset + dashboard_width - 40, y_offset), 2)
+        y_offset += 25
         
         completed_count = len(self.task_manager.completed_tasks)
         total_tasks = len(self.task_manager.tasks)
-        progress_text = self.font.render(f"Progress: {completed_count}/{total_tasks}", True, (200, 255, 200))
-        self.screen.blit(progress_text, (730, y_offset))
-        y_offset += 25
+        progress_title = self.large_font.render(f"✓ {completed_count}/{total_tasks} TASKS", True, (150, 255, 150))
+        self.screen.blit(progress_title, (x_offset, y_offset))
+        y_offset += 35
         
-        for task_id in self.task_manager.completed_tasks:
-            task = self.task_manager.tasks[task_id]
-            completed_task = self.font.render(f"✓ {task['name']}", True, (100, 255, 100))
-            self.screen.blit(completed_task, (730, y_offset))
-            y_offset += 20
-        
-        y_offset += 20
+        # Task progress bar
+        task_progress = completed_count / total_tasks if total_tasks > 0 else 0
+        self.draw_progress_bar(x_offset, y_offset, bar_width, bar_height, task_progress, (100, 255, 150))
+        y_offset += 30
         
         # Controls
-        controls_title = self.large_font.render("CONTROLS:", True, (255, 200, 100))
-        self.screen.blit(controls_title, (730, y_offset))
+        pygame.draw.line(self.screen, (60, 70, 100), (x_offset, y_offset), 
+                        (x_offset + dashboard_width - 40, y_offset), 2)
+        y_offset += 25
+        
+        controls_title = self.large_font.render("⌨ CONTROLS", True, (200, 180, 255))
+        self.screen.blit(controls_title, (x_offset, y_offset))
         y_offset += 30
         
         controls = [
-            "Arrow Keys - Move",
-            "B - BFS Path (Green)",
-            "A - A* Path (Blue)", 
-            "U - Undo move",
-            "C - Clear path",
-            "P - Pause",
-            "N - Next task",
-            "R - Restart"
+            "↑↓←→ Move", "B - BFS", "A - A*",
+            "C - Clear", "P - Pause", "R - Restart", "ESC - Exit"
         ]
         
         for control in controls:
-            control_text = self.font.render(control, True, (200, 200, 255))
-            self.screen.blit(control_text, (730, y_offset))
-            y_offset += 20
+            control_text = self.small_font.render(control, True, (180, 180, 200))
+            self.screen.blit(control_text, (x_offset, y_offset))
+            y_offset += 22
         
-        # Game state messages
+        # Game state overlays
         if self.state == GameState.PAUSED:
-            self.draw_centered_message("PAUSED", (255, 255, 0))
+            self.draw_overlay("⏸ PAUSED", "Press P to continue", (255, 220, 100))
         elif self.state == GameState.VICTORY:
-            self.draw_centered_message("ACADEMIC VICTORY! All tasks completed!", (0, 255, 0))
-            restart = self.font.render("Press R to play again", True, (255, 255, 255))
-            self.screen.blit(restart, (self.screen_width//2 - 80, self.screen_height//2 + 30))
+            self.draw_overlay("🏆 VICTORY!", f"Score: {self.score} | Press R", (100, 255, 150))
         elif self.state == GameState.GAME_OVER:
-            self.draw_centered_message("TIME'S UP! Game Over", (255, 50, 50))
-            restart = self.font.render("Press R to try again", True, (255, 255, 255))
-            self.screen.blit(restart, (self.screen_width//2 - 80, self.screen_height//2 + 30))
+            self.draw_overlay("⏰ TIME'S UP!", "Press R to retry", (255, 100, 100))
     
-    def draw_centered_message(self, message, color):
-        message_text = self.title_font.render(message, True, color)
-        text_rect = message_text.get_rect(center=(self.screen_width//2, self.screen_height//2))
-        self.screen.blit(message_text, text_rect)
+    def draw_card(self, x, y, width, height, color):
+        """Draw a card background"""
+        card_rect = pygame.Rect(x, y, width, height)
+        pygame.draw.rect(self.screen, color, card_rect, border_radius=5)
+        pygame.draw.rect(self.screen, (color[0]+30, color[1]+30, color[2]+30), card_rect, 2, border_radius=5)
+    
+    def draw_progress_bar(self, x, y, width, height, progress, color):
+        """Draw an animated progress bar"""
+        bar_bg = pygame.Rect(x, y, width, height)
+        pygame.draw.rect(self.screen, (30, 35, 45), bar_bg, border_radius=8)
+        
+        bar_fill = pygame.Rect(x, y, int(width * progress), height)
+        pygame.draw.rect(self.screen, color, bar_fill, border_radius=8)
+        pygame.draw.rect(self.screen, (60, 70, 90), bar_bg, 2, border_radius=8)
+    
+    def draw_overlay(self, title, subtitle, color):
+        overlay = pygame.Surface((self.screen_width, self.screen_height))
+        overlay.set_alpha(200)
+        overlay.fill((10, 15, 25))
+        self.screen.blit(overlay, (0, 0))
+        
+        title_text = self.huge_font.render(title, True, color)
+        title_rect = title_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 40))
+        
+        shadow = self.huge_font.render(title, True, (0, 0, 0))
+        shadow_rect = shadow.get_rect(center=(self.screen_width // 2 + 3, self.screen_height // 2 - 37))
+        self.screen.blit(shadow, shadow_rect)
+        self.screen.blit(title_text, title_rect)
+        
+        subtitle_text = self.large_font.render(subtitle, True, (200, 200, 200))
+        subtitle_rect = subtitle_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 30))
+        self.screen.blit(subtitle_text, subtitle_rect)
     
     def run(self):
         running = True
@@ -670,7 +1037,7 @@ class RVCECampusRunner:
             running = self.handle_input()
             self.update()
             self.draw()
-            self.clock.tick(10)
+            self.clock.tick(60)  # 60 FPS for smooth animations
         
         pygame.quit()
         sys.exit()
