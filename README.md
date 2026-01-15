@@ -21,6 +21,8 @@ Navigate through RVCE campus completing academic tasks while comparing BFS and A
 - Time-based challenge mode
 
 ## 🚀 Quick Start
+Create a virtual environment and install dependencies:
 ```bash
 pip install pygame
+pip install numpy
 python main.py
