@@ -415,6 +415,15 @@ class RVCECampusRunner:
         self.nearby_npc = None
         self.npc_dialogue_active = False
         
+        # Hint system
+        self.hint_used = False  # Track if hint was used for current task
+        self.hint_cost = 15  # Points deducted for using hint
+        self.show_hint = False  # Whether hint is currently shown
+        
+        # Star shimmer effect (when gaining points)
+        self.star_shimmer = 0  # Shimmer intensity (0-1, decays over time)
+        self.last_score = 0  # To detect score changes
+        
         # Sound manager
         self.sound_manager = None
         if SOUND_AVAILABLE:
@@ -908,8 +917,10 @@ class RVCECampusRunner:
                 self.task_manager.complete_task(current_task['id'])
                 self.current_path = []
                 
-                # Reset step counter for next task
+                # Reset step counter and hint for next task
                 self.task_steps = 0
+                self.hint_used = False
+                self.show_hint = False
                 
                 next_task = self.task_manager.get_next_task()
                 if next_task:
@@ -1141,6 +1152,21 @@ class RVCECampusRunner:
                     elif event.key == pygame.K_MINUS:
                         if self.camera:
                             self.camera.zoom_out()
+                    # H key to show/toggle hint
+                    elif event.key == pygame.K_h:
+                        if self.task_manager.current_task:
+                            if not self.show_hint:
+                                # First time showing hint for this task
+                                if not self.hint_used:
+                                    self.score = max(0, self.score - self.hint_cost)
+                                    self.hint_used = True
+                                    self.ui_message = f"Hint used! (-{self.hint_cost} pts)"
+                                    self.ui_message_timer = 2.0
+                                    if self.sound_manager:
+                                        self.sound_manager.play('alert')
+                                self.show_hint = True
+                            else:
+                                self.show_hint = False
                 
                 elif self.state == GameState.PAUSED:
                     if event.key == pygame.K_p:
@@ -1216,6 +1242,15 @@ class RVCECampusRunner:
         
         # Update particles
         self.particles = [p for p in self.particles if p.update(dt)]
+        
+        # Update star shimmer effect (detect score changes)
+        if self.score != self.last_score:
+            if self.score > self.last_score:
+                self.star_shimmer = 1.0  # Full shimmer on score increase
+            self.last_score = self.score
+        else:
+            # Decay shimmer over time
+            self.star_shimmer = max(0, self.star_shimmer - dt * 2)
         
         # Update UI message timer
         if self.ui_message_timer > 0:
@@ -1593,12 +1628,131 @@ class RVCECampusRunner:
                                                    (self.game_map.cell_size, self.game_map.cell_size))
             self.screen.blit(player_sprite, player_rect.topleft)
         
-        # Draw dashboard
-        map_width = self.game_map.width * self.game_map.cell_size
-        map_offset_x = 50
-        self.draw_dashboard(map_offset_x, map_width)
+        # Draw new top HUD (timer, riddle, score star)
+        self.draw_top_hud()
         pygame.display.flip()
     
+    def draw_top_hud(self):
+        """Draw the new top HUD with timer, riddle, hint, and golden star score"""
+        # === TOP TIMER BAR (across screen) ===
+        bar_height = 8
+        time_ratio = max(0, self.time_remaining / self.max_time)
+        bar_color = (100, 255, 150) if self.time_remaining > 60 else (255, 100, 100)
+        
+        # Background bar
+        pygame.draw.rect(self.screen, (40, 40, 50), (0, 0, self.screen_width, bar_height + 4))
+        # Timer progress
+        pygame.draw.rect(self.screen, bar_color, (2, 2, int((self.screen_width - 4) * time_ratio), bar_height))
+        
+        # Timer text in center
+        time_text = self.font.render(f"⏱ {self.time_remaining}s", True, bar_color)
+        time_rect = time_text.get_rect(center=(self.screen_width // 2, bar_height + 18))
+        self.screen.blit(time_text, time_rect)
+        
+        # === GOLDEN STAR SCORE (top right) ===
+        star_x = self.screen_width - 60
+        star_y = 45
+        star_radius = 25
+        
+        # Star shimmer effect
+        shimmer_intensity = self.star_shimmer
+        base_color = (255, 200, 50)  # Golden color
+        shimmer_color = (
+            min(255, int(base_color[0] + shimmer_intensity * 50)),
+            min(255, int(base_color[1] + shimmer_intensity * 55)),
+            min(255, int(base_color[2] + shimmer_intensity * 150))
+        )
+        
+        # Draw glowing star background if shimmering
+        if shimmer_intensity > 0.1:
+            glow_radius = int(star_radius + 15 * shimmer_intensity)
+            glow_surface = pygame.Surface((glow_radius * 2, glow_radius * 2), pygame.SRCALPHA)
+            pygame.draw.circle(glow_surface, (*shimmer_color, int(80 * shimmer_intensity)), 
+                             (glow_radius, glow_radius), glow_radius)
+            self.screen.blit(glow_surface, (star_x - glow_radius, star_y - glow_radius))
+        
+        # Draw 5-pointed star
+        points = []
+        for i in range(10):
+            angle = math.radians(i * 36 - 90)
+            r = star_radius if i % 2 == 0 else star_radius * 0.4
+            points.append((star_x + r * math.cos(angle), star_y + r * math.sin(angle)))
+        pygame.draw.polygon(self.screen, shimmer_color, points)
+        pygame.draw.polygon(self.screen, (255, 255, 200), points, 2)
+        
+        # Bright orange score text NEXT TO star (left side)
+        score_text = self.large_font.render(f"{self.score}", True, (255, 140, 0))  # Bright orange
+        score_rect = score_text.get_rect(midright=(star_x - star_radius - 10, star_y))
+        self.screen.blit(score_text, score_rect)
+        
+        # === RIDDLE / TASK DISPLAY (below timer, left side) ===
+        if self.task_manager.current_task:
+            task = self.task_manager.current_task
+            riddle_y = 35
+            max_riddle_x = self.screen_width - 150  # Don't overlap with star
+            
+            # Task name
+            task_text = self.font.render(f"📋 {task['name']}", True, (150, 200, 255))
+            self.screen.blit(task_text, (15, riddle_y))
+            riddle_y += 22
+            
+            # Riddle text (word wrap if needed)
+            riddle = task.get('riddle', '')
+            lines = riddle.split('\\n') if '\\n' in riddle else [riddle]
+            for line in lines[:2]:  # Max 2 lines
+                max_chars = 50  # Reduced to prevent overlap
+                if len(line) > max_chars:
+                    line = line[:max_chars - 3] + "..."
+                riddle_text = self.small_font.render(line, True, (200, 200, 220))
+                self.screen.blit(riddle_text, (20, riddle_y))
+                riddle_y += 16
+            
+            # Hint button / display
+            hint_y = riddle_y + 3
+            if self.show_hint:
+                # Show hint text
+                hint = task.get('hint', 'No hint available')
+                if len(hint) > 45:
+                    hint = hint[:42] + "..."
+                hint_surface = self.small_font.render(f"💡 {hint}", True, (255, 220, 100))
+                self.screen.blit(hint_surface, (20, hint_y))
+            else:
+                # Show hint button prompt
+                hint_color = (100, 100, 100) if self.hint_used else (150, 150, 180)
+                hint_prompt = f"[H] Hint" + (" (used)" if self.hint_used else f" (-{self.hint_cost} pts)")
+                hint_surface = self.small_font.render(hint_prompt, True, hint_color)
+                self.screen.blit(hint_surface, (20, hint_y))
+            
+            # Building name (right side, below timer but above star area)
+            building = task['building']
+            if len(building) > 20:
+                building = building[:17] + "..."
+            building_text = self.small_font.render(f"📍 {building}", True, (150, 180, 255))
+            building_rect = building_text.get_rect(topright=(self.screen_width - 130, 35))
+            self.screen.blit(building_text, building_rect)
+        
+        # === UI MESSAGE (center screen if active) ===
+        if self.ui_message and self.ui_message_timer > 0:
+            msg_surface = self.large_font.render(self.ui_message, True, (255, 255, 200))
+            msg_rect = msg_surface.get_rect(center=(self.screen_width // 2, self.screen_height - 60))
+            # Background
+            bg_rect = msg_rect.inflate(20, 10)
+            pygame.draw.rect(self.screen, (30, 30, 40, 200), bg_rect, border_radius=10)
+            self.screen.blit(msg_surface, msg_rect)
+        
+        # === CONTROLS (bottom left compact) ===
+        controls_text = self.small_font.render("↑↓←→ Move | H Hint | B/A Path | P Pause | ESC Menu", 
+                                                True, (120, 120, 140))
+        self.screen.blit(controls_text, (10, self.screen_height - 25))
+        
+        # === GAME STATE OVERLAYS ===
+        if self.state == GameState.PAUSED:
+            self.draw_overlay("⏸ PAUSED", "Press P to continue | M - Menu", (255, 220, 100))
+        elif self.state == GameState.VICTORY:
+            self.draw_overlay("🏆 VICTORY!", f"Score: {self.score} | R - Restart | M - Menu", (100, 255, 150))
+        elif self.state == GameState.GAME_OVER:
+            self.draw_overlay("⏰ TIME'S UP!", f"Score: {self.score} | R - Retry | M - Menu", (255, 100, 100))
+
     def draw_dashboard(self, map_offset_x, map_width):
         # Dashboard positioning
         dashboard_x = map_offset_x + map_width + 30
