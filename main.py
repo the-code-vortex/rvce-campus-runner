@@ -424,6 +424,19 @@ class RVCECampusRunner:
         self.star_shimmer = 0  # Shimmer intensity (0-1, decays over time)
         self.last_score = 0  # To detect score changes
         
+        # Level progression system
+        self.current_level = 1
+        self.level_thresholds = {
+            1: 0,      # Level 1: start
+            2: 200,    # Level 2: need 200 points
+            3: 500     # Level 3: need 500 points
+        }
+        self.level_names = {1: "Fresher", 2: "Junior", 3: "Senior"}
+        
+        # Pathfinding usage tracking (for independent discovery bonus)
+        self.used_pathfinding = False  # Did player use B/A keys for current task?
+        self.independent_bonus = 20  # Bonus for finding shortest path without B/A
+        
         # Sound manager
         self.sound_manager = None
         if SOUND_AVAILABLE:
@@ -604,101 +617,9 @@ class RVCECampusRunner:
         }
     
     def setup_special_tiles(self):
-        """Setup special tile types for dynamic gameplay"""
-        # Add ice tiles (near library area)
-        ice_positions = [(9, 13), (10, 13), (12, 13)]
-        for x, y in ice_positions:
-            if self.game_map.is_walkable(x, y):
-                self.tile_map[y][x] = TileType.ICE
-                
-        # Add grass tiles (garden areas)
-        grass_positions = [(5, 5), (6, 5), (5, 7), (6, 7), (15, 7), (15, 9)]
-        for x, y in grass_positions:
-            if self.game_map.is_walkable(x, y):
-                self.tile_map[y][x] = TileType.GRASS
-        
-        # Helper function to check if all buildings are reachable from player start
-        def all_buildings_reachable():
-            """BFS to verify all buildings are reachable from player start"""
-            start = (2, 15)  # Main Gate / Player start
-            visited = set()
-            queue = deque([start])
-            visited.add(start)
-            
-            while queue:
-                x, y = queue.popleft()
-                for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-                    nx, ny = x + dx, y + dy
-                    if (nx, ny) not in visited:
-                        if 0 <= nx < self.game_map.width and 0 <= ny < self.game_map.height:
-                            tile = self.tile_map[ny][nx]
-                            # Check if walkable (portals ARE walkable)
-                            if tile != TileType.WALL and tile != TileType.CONSTRUCTION:
-                                visited.add((nx, ny))
-                                queue.append((nx, ny))
-            
-            # Check all building positions are reachable
-            for name, pos in self.buildings.items():
-                if pos not in visited:
-                    return False, name
-            return True, None
-        
-        # Try portal placement - only if all buildings remain reachable
-        # Portals should be on intersection tiles, not bottleneck paths
-        potential_portal_pairs = [
-            ((7, 13), (13, 9)),    # Library area to CSE area
-            ((5, 9), (15, 11)),    # Mid-left to mid-right
-            ((3, 11), (17, 5)),    # Left side to right side
-        ]
-        
-        portal_placed = False
-        for portal_a, portal_b in potential_portal_pairs:
-            # Check both positions are walkable NORMAL tiles (not buildings)
-            if (self.game_map.is_walkable(*portal_a) and 
-                self.game_map.is_walkable(*portal_b) and
-                portal_a not in self.buildings.values() and
-                portal_b not in self.buildings.values()):
-                
-                # Temporarily place portals
-                old_a = self.tile_map[portal_a[1]][portal_a[0]]
-                old_b = self.tile_map[portal_b[1]][portal_b[0]]
-                self.tile_map[portal_a[1]][portal_a[0]] = TileType.PORTAL_A
-                self.tile_map[portal_b[1]][portal_b[0]] = TileType.PORTAL_B
-                
-                # Verify all buildings still reachable
-                reachable, blocked = all_buildings_reachable()
-                
-                if reachable:
-                    # Keep portals
-                    self.tile_effect_handler.set_portals(portal_a, portal_b)
-                    portal_placed = True
-                    break
-                else:
-                    # Revert portals - they block access to a building
-                    self.tile_map[portal_a[1]][portal_a[0]] = old_a
-                    self.tile_map[portal_b[1]][portal_b[0]] = old_b
-                    print(f"Skipped portal pair {portal_a}-{portal_b}: would block {blocked}")
-        
-        if not portal_placed:
-            print("No valid portal positions found - skipping portals")
-            
-        # Add trap tiles (verify they don't block paths)
-        trap_positions = [(9, 9), (5, 11)]
-        for x, y in trap_positions:
-            if self.game_map.is_walkable(x, y) and (x, y) not in self.buildings.values():
-                self.tile_map[y][x] = TileType.TRAP
-                
-        # Add booster tiles
-        booster_positions = [(7, 7), (13, 13)]
-        for x, y in booster_positions:
-            if self.game_map.is_walkable(x, y) and (x, y) not in self.buildings.values():
-                self.tile_map[y][x] = TileType.BOOSTER
-                
-        # Add water tiles
-        water_positions = [(9, 5), (10, 5), (11, 5)]
-        for x, y in water_positions:
-            if self.game_map.is_walkable(x, y) and (x, y) not in self.buildings.values():
-                self.tile_map[y][x] = TileType.WATER
+        """Setup special tile types - currently disabled"""
+        # All special tiles removed as per user request
+        pass
                 
     def setup_academic_tasks(self):
         tasks = {
@@ -906,21 +827,44 @@ class RVCECampusRunner:
                         efficiency_message = f" {efficiency_bonus} (took many detours)"
                 
                 total_points = base_points + efficiency_bonus
-                self.score += total_points
+                
+                # Independent path discovery bonus (+20 if found shortest path without using B/A)
+                independent_bonus = 0
+                if not self.used_pathfinding and self.task_steps <= self.expected_path_length + 2:
+                    # Player found near-optimal path without using pathfinding keys!
+                    independent_bonus = self.independent_bonus
+                    efficiency_message += f" +{independent_bonus} DISCOVERY BONUS!"
+                    if self.sound_manager:
+                        self.sound_manager.play('victory')
+                
+                self.score += total_points + independent_bonus
                 
                 print(f"✓ Task Completed: {current_task['name']} (+{base_points} base{efficiency_message})")
                 print(f"   Path: {self.task_steps} steps vs {self.expected_path_length} expected (BFS optimal)")
                 
-                if self.sound_manager and efficiency_bonus <= 0:
+                if self.sound_manager and efficiency_bonus <= 0 and independent_bonus == 0:
                     self.sound_manager.play('task_complete')
+                
+                # Check for level up
+                old_level = self.current_level
+                for level in [3, 2, 1]:
+                    if self.score >= self.level_thresholds[level]:
+                        self.current_level = level
+                        break
+                if self.current_level > old_level:
+                    self.ui_message = f"🎉 LEVEL UP! Now {self.level_names[self.current_level]}!"
+                    self.ui_message_timer = 3.0
+                    if self.sound_manager:
+                        self.sound_manager.play('victory')
                 
                 self.task_manager.complete_task(current_task['id'])
                 self.current_path = []
                 
-                # Reset step counter and hint for next task
+                # Reset step counter, hint, and pathfinding flag for next task
                 self.task_steps = 0
                 self.hint_used = False
                 self.show_hint = False
+                self.used_pathfinding = False
                 
                 next_task = self.task_manager.get_next_task()
                 if next_task:
@@ -1111,12 +1055,14 @@ class RVCECampusRunner:
                             target = self.buildings[self.task_manager.current_task['building']]
                             self.current_path = self.find_path_bfs(self.player_pos, target)
                             self.path_algorithm = "BFS"
+                            self.used_pathfinding = True  # Track that player used pathfinding
                             print(f"✓ BFS Path: {len(self.current_path)} cells, {self.algorithm_stats['BFS']} nodes explored")
                     elif event.key == pygame.K_a:
                         if self.task_manager.current_task:
                             target = self.buildings[self.task_manager.current_task['building']]
                             self.current_path = self.find_path_astar(self.player_pos, target)
                             self.path_algorithm = "A*"
+                            self.used_pathfinding = True  # Track that player used pathfinding
                             print(f"✓ A* Path: {len(self.current_path)} cells, {self.algorithm_stats['A*']} nodes explored")
                     elif event.key == pygame.K_c:
                         self.current_path = []
@@ -1684,6 +1630,13 @@ class RVCECampusRunner:
         score_text = self.large_font.render(f"{self.score}", True, (255, 140, 0))  # Bright orange
         score_rect = score_text.get_rect(midright=(star_x - star_radius - 10, star_y))
         self.screen.blit(score_text, score_rect)
+        
+        # Level display below score and star
+        level_color = [(150, 200, 150), (100, 200, 255), (255, 200, 100)][self.current_level - 1]
+        level_text = self.small_font.render(f"Lvl {self.current_level}: {self.level_names[self.current_level]}", 
+                                             True, level_color)
+        level_rect = level_text.get_rect(topright=(self.screen_width - 15, star_y + star_radius + 5))
+        self.screen.blit(level_text, level_rect)
         
         # === RIDDLE / TASK DISPLAY (below timer, left side) ===
         if self.task_manager.current_task:
