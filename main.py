@@ -686,6 +686,14 @@ class RVCECampusRunner:
         
         # Setup tasks
         self.setup_academic_tasks()
+        # --- INITIAL EXPECTED PATH (FIRST TASK) ---
+        if self.task_manager.current_task:
+            target = self.buildings.get(self.task_manager.current_task['building'])
+            if target:
+                expected_path = self.find_path_bfs(self.player_pos, target)
+                self.expected_path_length = len(expected_path)
+                self.task_start_pos = self.player_pos
+
         # Trigger rain probabilistically based on difficulty
         rain_chance = self.difficulty_settings[self.difficulty]['rain_chance']
         if self.event_manager and random.random() < rain_chance:
@@ -771,21 +779,21 @@ class RVCECampusRunner:
                 "No permanent structure commands attention here,\nOnly moments do."
             ],
             "hard": [
-                "A transient epicenter,\nWhere significance exists only\nWhen observers arrive."
+                "A concrete philosophy of potential space,\nWhere significance is drawn from the human face.\nIt exists as a field of possible interaction,\nDefined by the crowd's momentary satisfaction."
             ]
         },
 
         "Civil Dept": {
             "easy": [
-                "Before buildings rise,\nThey exist here first.\nMeasurements matter more than imagination.",
-                "Lines, loads, and limits\nAre debated long before construction."
+                "Open to the sky, it waits in quiet repose,\nA blank slate for feet where no corridor goes.\nSilence reigns until a crowd arrives to fill,\nThen it echoes with voices, a stage for their will.",
+            "No lectures are given on this vast, level floor,\nYet it teaches the power a united group has in store.\nFrom silent protest to a festival's sound,\nIts purpose is found when the many are bound."
             ],
             "normal": [
                 "Gravity is respected here,\nNot challenged.\nDesign bows to physics.",
                 "What stands strong outside\nWas calculated within."
             ],
             "hard": [
-                "A discipline devoted\nTo preventing collapse\nThrough foresight."
+                "The art of predicting what time will degrade,\nAnd designing a defense that will never fade.\nA war against collapse waged with a pen,\nGranting permanence, again and again."
             ]
         },
 
@@ -799,7 +807,7 @@ class RVCECampusRunner:
                 "Processes outnumber conversations."
             ],
             "hard": [
-                "Power exercised quietly\nThrough procedure."
+                "A nexus of governance, subdued and austere,\nWhere policy hardens from idea to clear.\nThe engine of function, both feared and beseeched,\nWhere individual will is to procedure leeched."
             ]
         },
 
@@ -813,7 +821,7 @@ class RVCECampusRunner:
                 "Questions matter more\nThan correct answers."
             ],
             "hard": [
-                "A controlled space\nFor intellectual risk-taking."
+                "A laboratory for intellectual chance,\nWhere failure is seen as a forward advance.\nA managed environment, carefully sown,\nFor ideas to flourish on their very own"
             ]
         },
 
@@ -827,21 +835,21 @@ class RVCECampusRunner:
                 "Nothing moves without reason\nInside these walls."
             ],
             "hard": [
-                "The science of turning energy\nInto obedience."
+                "The discipline tasked with the willing command,\nOf energies hidden in water and land.\nTo translate the silent, explosive desire,\nOf atoms and fuels, to turn wheel and tire."
             ]
         },
 
         "BT Quadrangle": {
             "easy": [
                 "An open space surrounded by study,\nWhere discussions spill outside classrooms.",
-                "Life sciences breathe\nBeyond walls here."
+                
             ],
             "normal": [
                 "A pause between theory sessions,\nYet still academic.",
                 "Learning continues even without lectures."
             ],
             "hard": [
-                "A communal extension\nOf biological inquiry."
+                "It's more than a pathway, it's an extended class,\nWhere students on benches watch the world pass."
             ]
         },
 
@@ -855,18 +863,18 @@ class RVCECampusRunner:
                 "Logic trains systems\nTo imitate thinking."
             ],
             "hard": [
-                "An attempt to formalize intelligence\nWithout consciousness."
+                "The architecture of simulated mind,\nFrom vast correlation, a semblance designed.\nA pursuit of the ghost in the machine's shell,\nThrough algorithms cast like a syntactic spell."
             ]
         },
 
         "BT & EIE Dept": {
             "easy": [
                 "Living systems meet control logic\nInside.",
-                "Feedback loops define success."
+                "Feedback loops define success.\nSignals are sent to a living reply,\nUnder a watchful, instrumental eye."
             ],
             "normal": [
                 "Biology is regulated here,\nNot left to chance.",
-                "Signals guide outcomes."
+                "Chaos of nature meets order's demand,\nGuided not by a whim, but a circuit's command.\nThe rhythm of life is given a beat,\nBy sensors that monitor, prompt, and complete."
             ],
             "hard": [
                 "Where life meets precision\nThrough instrumentation."
@@ -875,68 +883,66 @@ class RVCECampusRunner:
 
         "IEM Dept": {
             "easy": [
-                "Decisions are engineered here,\nNot guessed.",
-                "Planning matters as much as design."
+                "They engineer choices, the how and the when,\nOptimizing the efforts of women and men.\nTheir blueprint is process, their goal is the flow,\nTo make the complex system effortlessly go."
             ],
             "normal": [
-                "Optimization replaces intuition,\nEfficiency replaces excess."
+                "A science of systems, of people and machine,\nOrchestrating a dance that is graceful and lean.\nTheir success is invisible, a smooth operation,\nThe silent conductor of an organization."
             ],
             "hard": [
-                "The science of managing\nTechnical complexity."
+                "The calculus applied to decision and act,\nTo minimize friction in the industrial pact.\nThe mastery of technical complexity's web,\nSo that order from potential chaos may ebb."
             ]
         },
 
         "Central Maintenance Office": {
             "easy": [
-                "When something fails,\nThis place responds.",
-                "Invisible work keeps systems alive."
+                "They don't start the day with a theory or quiz,\nBut with work orders listing what is and what fizz'd.\nTheir knowledge is practical, hands-on, and deep,\nIn the hidden veins where the building's life's keep"
             ],
             "normal": [
-                "Problems end here,\nNot begin.",
-                "Function matters more than theory."
+                "The guardians of normal, the keepers of 'on',\nWho work through the night till the trouble is gone.\nTheir triumph is silence, a system's low hum,\nA battle unseen that is always to come.",
             ],
             "hard": [
-                "Operational continuity\nWithout recognition."
+                "Operational continuity's hidden cost,\nThe labor that thrives when all else seems lost.\nA recognition-less vigil, a perpetual fix,\nOn the infrastructure on which academia sticks."
             ]
         },
 
         "EEE Dept": {
             "easy": [
-                "Energy flows unseen,\nBut is controlled here.",
-                "Power listens to equations."
+                "Power listens to them, is bent to their will,\nThrough transformers that step it up or down, silent and still.\nThey speak the language of volts, of amps, and of phase,\nLighting our world in a brilliant, controlled blaze."
             ],
             "normal": [
                 "Fields, currents, and systems\nShape modern life."
             ],
             "hard": [
-                "Mastery over invisible forces."
+                "The taming of lightning, the bending of fields,\nTo the service that modern existence yields.\nA deep mastery over nature's wild spark,\nTo illuminate both the future and the dark."
             ]
         },
 
         "CSE Dept": {
             "easy": [
-                "Instructions become outcomes here,\nThrough logic.",
-                "Machines obey written thought."
+                "Where thought is transcribed in a syntax so strict,\nAnd given to silicon to enact and predict.\nMachines are made obedient to written command,\nA logic imposed on the circuit's quick hand.",
+                "Instructions are crafted with care and with art,\nTo tell a dumb machine to play its own part.\nFrom simple 'if-else' to structures complex,\nThey build digital minds to perplex and to vex."
             ],
             "normal": [
-                "Abstractions transform\nInto execution.",
-                "Code becomes reality."
+                "Abstractions take form here, from vague to concrete,\nAs symbols and functions find purchase, complete.\nWhat starts as a notion, a flicker of 'might',\nBecomes an app's window, aglow in the night.",
+                "Code is their clay, the compiler their kiln,\nWhere theoretical designs their reality fulfill.\nThey build worlds from nothing but logic and light,\nArchitects of the virtual, ruling the byte."
             ],
             "hard": [
-                "A place where symbols\nControl systems."
+                "The modern-day sorcery where meaning is caught,\nIn strings of pure symbol, in patterns of thought.\nA place where the abstract is forged into law,\nFor machines to enact without question or flaw."
             ]
         },
 
         "ETE Dept": {
             "easy": [
-                "Messages travel far\nFrom this discipline.",
-                "Distance challenges clarity."
+                "Their concern is the journey, not where it begins,\nPreserving the message as the transmission thins.\nAcross wire or air, through noise and through haze,\nThey fight to keep signals from going to graze.",
+                "Distance is the enemy, distortion the thief,\nAnd they are the senders of tonal relief.\nThey package the data, they amplify the call,\nTo ensure that the meaning survives through it all."
+
             ],
             "normal": [
-                "Transmission defines success\nMore than origin."
+                "Where a whisper of data is launched into space,\nTo find its true home at a relentless pace.\nClarity is the trophy they seek to attain,\nThrough modulation that triumphs over strain.",
+                "It's less about speaking, and more about how,\nThe word can be carried on a carrier's brow.\nThrough channels of chaos, they carve a clean lane,\nFor information to travel, again and again."
             ],
             "hard": [
-                "Preserving information\nAcross space."
+                "The art of the vessel, the craft of the vein,\nThrough which modern society's thoughts must remain.\nEnsuring the 'what' survives the brutal 'where',\nWith fidelity, speed, and impeccable care."
             ]
         },
 
@@ -946,11 +952,11 @@ class RVCECampusRunner:
                 "Forces explain the universe."
             ],
             "normal": [
-                "Reactions and laws\nShare classrooms.",
-                "Reality is questioned methodically."
+                "A shared home for the catalyst and the cosmic decree,\nWhere the very small and the very large hold the key.\nExperiments parse what the senses can't see,\nIn a methodical, bold search for what *must* be.",
+                "The pH and the photon are subjects of note,\nThe bond and the boson share chapter and quote.\nExistence itself is the text they must read,\nBy causing events and then watching them bleed."
             ],
             "hard": [
-                "Understanding existence\nThrough experiment."
+                "The foundational inquiry into stuff and its state,\nThe 'why' of the particle, the 'how' of the fate.\nDecoding the universe, piece by small piece,\nTo grant our perceptions a lasting, new lease"
             ]
         },
 
@@ -960,36 +966,35 @@ class RVCECampusRunner:
                 "Access is limited."
             ],
             "normal": [
-                "Status dictates entry,\nNot curiosity."
+                "Status is the key that turns in this lock,\nNot curiosity drawn from a textbook's stock.\nIt's a space for the meeting of influence and plan,\nRemoved from the turbulence of the student clan."
             ],
             "hard": [
-                "A controlled environment\nFor influence."
+                "A curated island within the scholastic sea,\nWhere power can conference, discreetly and free.\nAn anteroom to authority, a place to confer,\nWhere the social mechanics begin to occur."
             ]
         },
 
         "ASE & ISE Dept": {
             "easy": [
-                "Systems move first in simulations,\nThen in reality.",
-                "Flight begins on screens."
+                "They build what must fly, or in deep oceans glide,\nFirst in simulation, with nothing to hide.\nOn screens, their creations are tested and tossed,\nLong before real-world resources are lost"
             ],
             "normal": [
-                "Complex systems are tested\nBefore trust is granted."
+                "Complex systems are birthed in a digital womb,\nAnd subjected to simulated stress and gloom.\nTrust must be earned through a billion faux-flights,\nBefore something soars through the real, open heights."
             ],
             "hard": [
-                "Engineering stability\nIn dynamic environments."
+                "The foresight engineering of systems that move,\nWhere a single flawed variable you cannot approve.\nCrafting obedience in chaotic, fluid space,\nThrough meticulous, virtual, pre-emptive grace."
             ]
         },
 
         "MM Foods": {
             "easy": [
                 "Hunger interrupts focus,\nThis place restores it.",
-                "Not academic,\nYet essential."
+                "\nNot a temple of theory, but of practical need,\nWhere energy levels are topped up with speed."
             ],
             "normal": [
-                "Students arrive without planning,\nLeave satisfied."
+                "Students arrive with a brain-weary sigh,\nAnd leave with a satisfied glint in the eye.\nIt's an external solution, a commercial pact,\nFor the internal fatigue that is simple fact."
             ],
             "hard": [
-                "An external solution\nTo internal fatigue."
+                "The metabolic pit-stop in the race of the mind,\nAn external solution to internal fatigue."
             ]
         },
         "ECE Dept": {
@@ -1002,7 +1007,7 @@ class RVCECampusRunner:
                 "Clarity is engineered,\nNot assumed."
             ],
             "hard": [
-                "Preserving meaning\nAcross imperfect channels."
+                "The guardians of signal integrity's flame\nIn a universe eager to scatter the same.\nA discipline built on the fragile, pure thread\nCarrying modern world on its thread"
             ]
         },
 
@@ -1012,49 +1017,49 @@ class RVCECampusRunner:
                 "Trust flows digitally."
             ],
             "normal": [
-                "Money moves silently,\nWithout negotiation."
+                "It's a portal to commerce, to need and to lease,\n Where your stored, distant value finds a local release."
             ],
             "hard": [
-                "Automated access\nTo stored value."
+                " It renders the abstract of credit and save,\nInto tangible notes from its metallic cave."
             ]
         },
 
         "RV University": {
             "easy": [
                 "Another academic presence\nShares the landscape.",
-                "Parallel learning paths exist."
+                "Parallel learning paths exist.\nExisting so tangibly, intimately near."
             ],
             "normal": [
-                "Institutions coexist,\nKnowledge overlaps."
+                "Institutions coexist,\nKnowledge overlaps.\n Across invisible borders where students may heed."
             ],
             "hard": [
-                "A neighboring ecosystem\nOf intellect."
+                "A contiguous, yet distinct ecosystem of mind,\n With its own rhythms and ties that bind."
             ]
         },
 
         "Boys Hostel": {
             "easy": [
-                "Energy fades here,\nRecovery begins.",
-                "Days conclude within."
+                "Where the frantic energy of the long day descends,\nRecovery begins.",
+                "Days conclude within.\nUnder a single bulb's light, until dawn."
             ],
             "normal": [
-                "Shared living defines routine,\nPrivacy is negotiated."
+                "Shared living defines routine,\nPrivacy is negotiated\nLife is lived here in its mundane, real state,\nBehind every window, a personal fate."
             ],
             "hard": [
-                "Rest structured\nWithin community."
+                "The residential substrate of academic life,\nWhere one processes the intellectual strife.\n"
             ]
         },
 
         "Library": {
             "easy": [
                 "Silence amplifies learning.",
-                "Knowledge waits patiently."
+                "Knowledge waits patiently.\nA temple where intellect finds its best taste"
             ],
             "normal": [
-                "Information organized\nAcross time."
+                "Information organized across time.\nIs captured and ordered in this single place.\nThe past is on loan here, the future is penned,\nIn the quiet, fierce focus that has no end"
             ],
             "hard": [
-                "A disciplined archive\nOf thought."
+                "A disciplined archive Of thought.\nA bridge built from paper across the idea-beam.\n Where solitude and collected wisdom meet,\nTo make the individual mind complete."
             ]
         }
     }
@@ -1242,7 +1247,6 @@ class RVCECampusRunner:
                         self.sound_manager.play('victory')
                 
                 self.task_manager.complete_task(current_task['id'])
-                self.current_path = []
                 
                 # Reset step counter, hint, and pathfinding flag for next task
                 self.task_steps = 0
@@ -1456,7 +1460,6 @@ class RVCECampusRunner:
                         next_task = self.task_manager.get_next_task()
                         if next_task:
                             self.task_manager.assign_task(next_task)
-                            self.current_path = []
                     elif event.key == pygame.K_r:
                         self.reset_game()
                         return True
@@ -1755,27 +1758,7 @@ class RVCECampusRunner:
                     if fog_alpha > 0:
                         fog_surface = pygame.Surface((cell_size, cell_size), pygame.SRCALPHA)
                         fog_surface.fill((0, 0, 0, fog_alpha))
-                        self.screen.blit(fog_surface, rect.topleft)
-            
-            # Draw animated path
-            if len(self.current_path) > 0:
-                path_color = (50, 255, 100) if self.path_algorithm == "BFS" else (100, 150, 255)
-                
-                for i, pos in enumerate(self.current_path):
-                    px, py = pos
-                    world_x = px * self.game_map.cell_size
-                    world_y = py * self.game_map.cell_size
-                    screen_x, screen_y = self.camera.world_to_screen(world_x, world_y)
-                    rect = pygame.Rect(screen_x, screen_y, cell_size, cell_size)
-                    
-                    anim_offset = (self.path_animation - i * 3) % 60
-                    alpha = int(100 + 50 * math.sin(anim_offset / 10))
-                    
-                    path_surface = pygame.Surface((cell_size, cell_size), pygame.SRCALPHA)
-                    path_surface.fill((*path_color, alpha))
-                    self.screen.blit(path_surface, rect.topleft)
-                    pygame.draw.rect(self.screen, path_color, rect, 2)
-            
+                        self.screen.blit(fog_surface, rect.topleft)           
             # === CAMPUS ZONE BACKGROUNDS (visual grouping) ===
             zone_color = (120, 120, 200, 25)
             zone_surface = pygame.Surface((cell_size * 6, cell_size * 6), pygame.SRCALPHA)
@@ -1791,6 +1774,22 @@ class RVCECampusRunner:
                 wy = zy * self.game_map.cell_size
                 sx, sy= self.camera.world_to_screen(wx,wy)
                 self.screen.blit(zone_surface,(sx-cell_size*2,sy-cell_size*2))
+
+            # === ZONE LABELS ===
+            zone_labels = {
+                (6, 5): "Biotech Zone",
+                (14, 9): "CSE / ECE Zone",
+                (16, 15): "Residential"
+            }
+
+            for (zx, zy), label in zone_labels.items():
+                wx = zx * self.game_map.cell_size
+                wy = zy * self.game_map.cell_size
+                sx, sy = self.camera.world_to_screen(wx, wy)
+
+                txt = self.large_font.render(label, True, (180, 180, 200))
+                self.screen.blit(txt, (sx - 40, sy - 30))
+
 
             # === LANDMARKS (non-interactive, visual anchors) ===
             landmarks = {
@@ -1809,7 +1808,40 @@ class RVCECampusRunner:
                 label = self.small_font.render(lname, True, (220, 220, 220))
                 self.screen.blit(label, (sx - 10, sy - 20))
 
-            
+            # Draw animated path
+            if self.current_path:
+                if self.path_algorithm == "BFS":
+                    path_color = (50, 255, 100)
+                elif self.path_algorithm == "A*":
+                    path_color = (100, 150, 255)
+                else:
+                    path_color = (180, 180, 180)
+
+                for i, pos in enumerate(self.current_path):
+                    px, py = pos
+                    world_x = px * self.game_map.cell_size
+                    world_y = py * self.game_map.cell_size
+                    screen_x, screen_y = self.camera.world_to_screen(world_x, world_y)
+                    rect = pygame.Rect(screen_x, screen_y, cell_size, cell_size)
+                    if self.path_algorithm == "A*":
+                        pygame.draw.circle(
+                            self.screen,
+                            (255, 255, 255),
+                            rect.center,
+                            3
+                        )
+
+                    path_surface = pygame.Surface((cell_size, cell_size), pygame.SRCALPHA)
+                    path_surface.fill((*path_color, 160))
+                    self.screen.blit(path_surface, rect.topleft)
+                    pygame.draw.rect(self.screen, path_color, rect, 2)
+            if self.path_algorithm == "A*":
+                pygame.draw.circle(
+                    self.screen,
+                    (255, 255, 255),
+                    rect.center,
+                    3
+                )
             # Draw buildings
             for name, pos in self.buildings.items():
                 bx, by = pos
@@ -1838,10 +1870,54 @@ class RVCECampusRunner:
                 
                 if name in self.building_icons:
                     icon = self.building_icons[name]
-                    icon_size = cell_size - 8
+                    icon_size = cell_size - 14
                     icon_scaled = pygame.transform.scale(icon, (icon_size, icon_size))
-                    self.screen.blit(icon_scaled, (rect.x + 4, rect.y + 4))
-            
+                    self.screen.blit(icon_scaled, (rect.centerx - icon_size // 2, rect.centery - icon_size // 2))
+                label_map = {
+                    "Main Gate": "GATE",
+                    "Admin Block": "ADMIN",
+
+                    "DTL Innovation Hub": "DTL",
+                    "Mechanical Dept": "MECH",
+                    "Civil Dept": "CIVIL",
+
+                    "BT Quadrangle": "BT-Q",
+                    "AI-ML & MCA Dept": "AI/ML",
+                    "ASE & ISE Dept": "ASE",
+
+                    "BT & EIE Dept": "BT-EIE",
+                    "IEM Dept": "IEM",
+                    "EEE Dept": "EEE",
+
+                    "CSE Dept": "CSE",
+                    "CSE Ground": "CSE-G",
+                    "ECE Dept": "ECE",
+                    "ETE Dept": "ETE",
+
+                    "Chemical & Physics Dept": "CHEM",
+                    "Central Maintenance Office": "CMO",
+
+                    "Library": "LIB",
+                    "MM Foods": "FOOD",
+                    "Kotak Bank ATM": "ATM",
+
+                    "VIP Lounge": "VIP",
+                    "RV University": "RVU",
+
+                    "Boys Hostel": "HOSTEL"
+                }
+                
+                
+                short = label_map.get(name)
+                if short:
+                    tag = self.small_font.render(short, True, (240, 240, 240))
+                    tag_rect = tag.get_rect(center=rect.center)
+
+                    bg = tag_rect.inflate(6, 4)
+                    pygame.draw.rect(self.screen, (20, 20, 30), bg, border_radius=4)
+
+                    self.screen.blit(tag, tag_rect)
+
             # Draw NPCs
             if self.npc_manager:
                 npc_font = pygame.font.SysFont('Segoe UI', max(10, cell_size // 4), bold=True)
@@ -2119,7 +2195,6 @@ class RVCECampusRunner:
             return
 
         task = self.task_manager.current_task
-
         # === TASK CARD ===
         pygame.draw.rect(self.screen, (35, 45, 65),
                         (x, y, width, 90), border_radius=10)
@@ -2132,25 +2207,17 @@ class RVCECampusRunner:
         # Reveal location ONLY if hint is shown or task completed
         if self.show_hint:
             loc = self.small_font.render(f"📍 {task['building']}", True, (180, 180, 220))
-            self.screen.blit(loc, (x + 12, y + 40))
-
         else:
-            mystery = self.small_font.render(
-                "📍 Destination unknown", True, (130, 130, 150)
-            )
-            self.screen.blit(mystery, (x + 12, y + 40))
+            loc = self.small_font.render("📍 Destination unknown", True, (130, 130, 150))
 
+        self.screen.blit(loc, (x + 12, y + 40))
         y += 110
-
-        # === RIDDLE CARD ===
         # === RIDDLE CARD ===
         pygame.draw.rect(self.screen, (30, 35, 55),
                         (x, y, width, 200), border_radius=10)
-
         ry = y + 16
-        max_lines = 8
+        max_lines = 10
         line_count = 0
-
         for line in task["riddle"].split("\n"):
             wrapped = self.wrap_text(line, self.small_font, width - 24)
             for w in wrapped:
@@ -2158,14 +2225,12 @@ class RVCECampusRunner:
                     break
                 txt = self.small_font.render(w, True, (230, 230, 240))
                 self.screen.blit(txt, (x + 12, ry))
-                ry += 20
+                ry += 24
                 line_count += 1
             if line_count >= max_lines:
                 break
             ry += 4
-
         y += 220
-
         # === HINT CARD ===
         pygame.draw.rect(self.screen, (40, 40, 60),
                         (x, y, width, 90), border_radius=10)
@@ -2179,7 +2244,7 @@ class RVCECampusRunner:
         wrapped_hint = self.wrap_text(hint_text, self.small_font, width - 24)
         hy = y + 12
         for line in wrapped_hint[:3]:
-            htxt = self.small_font.render(line, True, (220, 190, 120) if self.show_hint else (130, 130, 150))
+            htxt = self.font.render(line, True, (220, 190, 120) if self.show_hint else (130, 130, 150))
             self.screen.blit(htxt, (x + 12, hy))
             hy += 18
 
@@ -2203,19 +2268,15 @@ class RVCECampusRunner:
         overlay.set_alpha(200)
         overlay.fill((10, 15, 25))
         self.screen.blit(overlay, (0, 0))
-        
         title_text = self.huge_font.render(title, True, color)
         title_rect = title_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 40))
-        
         shadow = self.huge_font.render(title, True, (0, 0, 0))
         shadow_rect = shadow.get_rect(center=(self.screen_width // 2 + 3, self.screen_height // 2 - 37))
         self.screen.blit(shadow, shadow_rect)
         self.screen.blit(title_text, title_rect)
-        
         subtitle_text = self.large_font.render(subtitle, True, (200, 200, 200))
         subtitle_rect = subtitle_text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 30))
         self.screen.blit(subtitle_text, subtitle_rect)
-    
     def run(self):
         running = True
         while running:
@@ -2223,10 +2284,8 @@ class RVCECampusRunner:
             self.update()
             self.draw()
             self.clock.tick(60)  # 60 FPS for smooth animations
-        
         pygame.quit()
         sys.exit()
-
 if __name__ == "__main__":
     game = RVCECampusRunner()
     game.run()
