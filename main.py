@@ -759,8 +759,7 @@ class RVCECampusRunner:
         """Setup special tile types - currently disabled"""
         # All special tiles removed as per user request
         pass
-<<<<<<< HEAD
-    
+
     RIDDLE_BANK = {
         "CSE Ground": {
             "easy": [
@@ -1057,67 +1056,6 @@ class RVCECampusRunner:
             "hard": [
                 "A disciplined archive\nOf thought."
             ]
-=======
-                
-    def setup_academic_tasks(self):
-        tasks = {
-            "task1": {
-                "id": "task1",
-                "name": "First Day Orientation",
-                "building": "Admin Block",
-                "riddle": "Where new beginnings start, paperwork and IDs you'll get.\nFind the building where all students first met!",
-                "points": 50,
-                "hint": "Head to the administrative heart of RVCE"
-            },
-            "task2": {
-                "id": "task2", 
-                "name": "Collect Syllabus",
-                "building": "BT Quadrangle",
-                "riddle": "For Biotech dreams, where formulas unfold,\nGet your syllabus, future stories to be told!",
-                "points": 75,
-                "hint": "Find the building for Biotechnology studies"
-            },
-            "task3": {
-                "id": "task3",
-                "name": "AI Lab Session", 
-                "building": "AI-ML & MCA Dept",
-                "riddle": "Where machines learn and algorithms play,\nAttend your first AI lab session today!",
-                "points": 100,
-                "hint": "Look for the department of Artificial Intelligence"
-            },
-            "task4": {
-                "id": "task4",
-                "name": "Library Research",
-                "building": "Library", 
-                "riddle": "Silent knowledge, books galore,\nResearch for projects, always learn more!",
-                "points": 80,
-                "hint": "Find the building with the most books"
-            },
-            "task5": {
-                "id": "task5",
-                "name": "Lunch Break",
-                "building": "Food Court (MINGOS)", 
-                "riddle": "Hungry from studies, need some fuel,\nFind the place that's really cool!",
-                "points": 60,
-                "hint": "Time for food at the popular eating spot"
-            },
-            "task6": {
-                "id": "task6",
-                "name": "Innovation Workshop",
-                "building": "DTL Innovation Hub",
-                "riddle": "Where ideas spark and startups grow,\nAttend a workshop, your skills to show!",
-                "points": 90,
-                "hint": "Visit the innovation and entrepreneurship center"
-            },
-            "task7": {
-                "id": "task7",
-                "name": "Hostel Check-in", 
-                "building": "Boys Hostel",
-                "riddle": "Day is ending, sun's going down,\nFind your room in campus town!",
-                "points": 70,
-                "hint": "Head to your accommodation for the night"
-            }
->>>>>>> c604a8fdb2d63ffed303b1b9ab30ea569660b376
         }
     }
     def setup_academic_tasks(self):
@@ -1781,7 +1719,15 @@ class RVCECampusRunner:
                         self.screen.blit(texture, rect.topleft)
                     elif tile_type in TILE_PROPERTIES:
                         props = TILE_PROPERTIES[tile_type]
-                        pygame.draw.rect(self.screen, props['color'], rect)
+                        pygame.draw.rect(self.screen, (70, 75, 90), rect)
+                        # Road center line (subtle)
+                        pygame.draw.line(
+                            self.screen,
+                            (100, 105, 130),
+                            (rect.centerx, rect.y + 6),
+                            (rect.centerx, rect.bottom - 6),
+                            1
+                        )
                         # Add tile indicators
                         if tile_type == TileType.ICE:
                             pygame.draw.line(self.screen, (200, 240, 255), 
@@ -1829,6 +1775,40 @@ class RVCECampusRunner:
                     path_surface.fill((*path_color, alpha))
                     self.screen.blit(path_surface, rect.topleft)
                     pygame.draw.rect(self.screen, path_color, rect, 2)
+            
+            # === CAMPUS ZONE BACKGROUNDS (visual grouping) ===
+            zone_color = (120, 120, 200, 25)
+            zone_surface = pygame.Surface((cell_size * 6, cell_size * 6), pygame.SRCALPHA)
+            zone_surface.fill(zone_color)
+
+            zones=[
+                (6,5),
+                (14,9),
+                (16,15)
+            ]
+            for zx, zy in zones:
+                wx = zx * self.game_map.cell_size
+                wy = zy * self.game_map.cell_size
+                sx, sy= self.camera.world_to_screen(wx,wy)
+                self.screen.blit(zone_surface,(sx-cell_size*2,sy-cell_size*2))
+
+            # === LANDMARKS (non-interactive, visual anchors) ===
+            landmarks = {
+                "Main Ground": (12, 9),
+                "Main Gate": (2, 15)
+            }
+
+            for lname, (lx, ly) in landmarks.items():
+                wx = lx * self.game_map.cell_size
+                wy = ly * self.game_map.cell_size
+                sx, sy = self.camera.world_to_screen(wx, wy)
+
+                radius = int(cell_size * 1.2)
+                pygame.draw.circle(self.screen, (90, 160, 120), (sx + cell_size//2, sy + cell_size//2), radius)
+
+                label = self.small_font.render(lname, True, (220, 220, 220))
+                self.screen.blit(label, (sx - 10, sy - 20))
+
             
             # Draw buildings
             for name, pos in self.buildings.items():
@@ -1934,6 +1914,11 @@ class RVCECampusRunner:
                     pygame.draw.circle(self.screen, (200, 230, 255, 150), 
                                      (player_rect.centerx + offset_x, player_rect.bottom + offset_y), 3)
             
+            # === PLAYER SHADOW (orientation + depth) ===
+            shadow = pygame.Surface((cell_size, cell_size//2), pygame.SRCALPHA)
+            pygame.draw.ellipse(shadow, (0, 0, 0, 120), shadow.get_rect())
+            self.screen.blit(shadow, (player_rect.x, player_rect.bottom - 6))
+
             # Draw player sprite
             sprite_index = (self.player_frame // 5) % len(self.player_sprites)
             player_sprite = pygame.transform.scale(self.player_sprites[sprite_index], (cell_size, cell_size))
@@ -2134,19 +2119,27 @@ class RVCECampusRunner:
             return
 
         task = self.task_manager.current_task
-        
 
         # === TASK CARD ===
         pygame.draw.rect(self.screen, (35, 45, 65),
                         (x, y, width, 90), border_radius=10)
 
-        title = self.font.render(task["name"], True, (150, 220, 255))
+        # Generic task title (does NOT reveal location)
+        title_text = "Destination Identified" if self.show_hint else "Solve the Riddle"
+        title = self.font.render(title_text, True, (150, 220, 255))
         self.screen.blit(title, (x + 12, y + 12))
 
-        loc = self.small_font.render(
-            f"📍 {task['building']}", True, (180, 180, 220)
-        )
-        self.screen.blit(loc, (x + 12, y + 40))
+        # Reveal location ONLY if hint is shown or task completed
+        if self.show_hint:
+            loc = self.small_font.render(f"📍 {task['building']}", True, (180, 180, 220))
+            self.screen.blit(loc, (x + 12, y + 40))
+
+        else:
+            mystery = self.small_font.render(
+                "📍 Destination unknown", True, (130, 130, 150)
+            )
+            self.screen.blit(mystery, (x + 12, y + 40))
+
         y += 110
 
         # === RIDDLE CARD ===
