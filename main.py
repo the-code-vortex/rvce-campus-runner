@@ -85,6 +85,60 @@ class AssetGenerator:
             pygame.draw.rect(surface, (100, 100, 100), (16, 15, 32, 24), border_radius=2)
             pygame.draw.rect(surface, (150, 200, 255), (18, 17, 28, 20))  # Screen
             pygame.draw.rect(surface, (80, 80, 80), (28, 39, 8, 8))  # Stand
+        
+        elif icon_type == "stage":
+            pygame.draw.polygon(surface, (255, 180, 80),
+            [(10, 45), (32, 15), (54, 45)])
+            pygame.draw.rect(surface, (120, 80, 50), (12, 45, 40, 8))
+
+        elif icon_type == "civil":
+            pygame.draw.rect(surface, (180, 180, 180), (14, 18, 36, 30))
+            pygame.draw.line(surface, (90, 90, 90), (14, 30), (50, 30), 2)
+
+        elif icon_type == "mechanical":
+            pygame.draw.circle(surface, (160, 160, 160), (32, 32), 14, 3)
+            pygame.draw.circle(surface, (100, 100, 100), (32, 32), 5)
+
+        elif icon_type == "biotech":
+            pygame.draw.circle(surface, (100, 200, 120), (32, 28), 10)
+            pygame.draw.line(surface, (80, 160, 100), (32, 38), (32, 52), 3)
+
+        elif icon_type == "ai":
+            pygame.draw.rect(surface, (100, 200, 255), (16, 18, 32, 24))
+            pygame.draw.circle(surface, (255, 255, 255), (32, 30), 3)
+
+        elif icon_type == "electronics":
+            pygame.draw.line(surface, (255, 255, 100), (12, 32), (52, 32), 3)
+
+        elif icon_type == "management":
+            pygame.draw.rect(surface, (200, 180, 100), (18, 20, 28, 24))
+
+        elif icon_type == "maintenance":
+            pygame.draw.rect(surface, (150, 150, 150), (18, 18, 28, 28))
+            pygame.draw.line(surface, (90, 90, 90), (18, 32), (46, 32), 3)
+
+        elif icon_type == "power":
+            pygame.draw.polygon(surface, (255, 220, 0),
+                [(30, 10), (36, 30), (28, 30), (34, 50)])
+
+        elif icon_type == "code":
+            pygame.draw.line(surface, (150, 255, 150), (20, 20), (30, 32), 3)
+            pygame.draw.line(surface, (150, 255, 150), (30, 32), (20, 44), 3)
+
+        elif icon_type == "signal":
+            pygame.draw.arc(surface, (200, 200, 255), (12, 12, 40, 40), 0, 3.14, 3)
+
+        elif icon_type == "chemistry":
+            pygame.draw.polygon(surface, (200, 100, 100),
+                [(28, 14), (36, 14), (42, 44), (22, 44)])
+
+        elif icon_type == "vip":
+            pygame.draw.circle(surface, (255, 215, 0), (32, 32), 14, 3)
+
+        elif icon_type == "aerospace":
+            pygame.draw.polygon(surface, (180, 180, 255),
+                [(32, 10), (38, 50), (32, 44), (26, 50)])
+
             
         elif icon_type == "default":
             # Generic building icon
@@ -97,28 +151,32 @@ class AssetGenerator:
     
     @staticmethod
     def create_player_sprite(frame=0, size=32):
-        """Generate animated player sprite"""
         surface = pygame.Surface((size, size), pygame.SRCALPHA)
-        
-        # Body (circle)
-        bounce = math.sin(frame * 0.3) * 2 if frame > 0 else 0
-        center_y = size // 2 - int(bounce)
-        
+
+        bob = math.sin(frame * 0.4) * 2
+        cx, cy = size // 2, size // 2 - int(bob)
+
         # Shadow
-        shadow = pygame.Surface((size, size // 4), pygame.SRCALPHA)
-        pygame.draw.ellipse(shadow, (0, 0, 0, 80), (4, 0, size - 8, size // 4))
-        surface.blit(shadow, (0, size - size // 4))
-        
+        pygame.draw.ellipse(surface, (0, 0, 0, 60),
+            (6, size - 8, size - 12, 6))
+
         # Body
-        pygame.draw.circle(surface, (255, 100, 100), (size // 2, center_y), size // 3)
-        pygame.draw.circle(surface, (255, 150, 150), (size // 2, center_y), size // 3, 2)
-        
+        pygame.draw.circle(surface, (80, 160, 255), (cx, cy), 10)
+        pygame.draw.circle(surface, (255, 255, 255), (cx, cy), 10, 2)
+
         # Eyes
-        eye_offset = 2 if frame % 2 == 0 else 0
-        pygame.draw.circle(surface, (50, 50, 50), (size // 2 - 4, center_y - 2), 2)
-        pygame.draw.circle(surface, (50, 50, 50), (size // 2 + 4, center_y - 2), 2)
-        
+        pygame.draw.circle(surface, (0, 0, 0), (cx - 3, cy - 2), 2)
+        pygame.draw.circle(surface, (0, 0, 0), (cx + 3, cy - 2), 2)
+
+        # Feet animation
+        step = frame % 2
+        pygame.draw.line(surface, (50, 50, 50),
+            (cx - 4, cy + 10), (cx - 6, cy + 14 + step), 2)
+        pygame.draw.line(surface, (50, 50, 50),
+            (cx + 4, cy + 10), (cx + 6, cy + 14 - step), 2)
+
         return surface
+
     
     @staticmethod
     def create_texture(texture_type, size=32):
@@ -346,9 +404,12 @@ class RVCECampusRunner:
     def __init__(self):
         pygame.init()
         # Fullscreen mode
-        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((1280, 800))
         self.screen_width = self.screen.get_width()
         self.screen_height = self.screen.get_height()
+        self.PANEL_RATIO = 0.30
+        self.panel_width = int(self.screen_width * self.PANEL_RATIO)
+        self.map_width = self.screen_width - self.panel_width
         pygame.display.set_caption("RVCE Campus Runner - Pathfinding Adventure")
         self.clock = pygame.time.Clock()
         
@@ -371,10 +432,32 @@ class RVCECampusRunner:
         # Difficulty settings (default: normal)
         self.difficulty = 'normal'
         self.difficulty_settings = {
-            'easy': {'time': 420, 'tasks': 5, 'name': 'Easy'},
-            'normal': {'time': 300, 'tasks': 7, 'name': 'Normal'},
-            'hard': {'time': 180, 'tasks': 7, 'name': 'Hard'},
+            'easy': {
+                'time': 420,
+                'tasks': 5,
+                'name': 'Easy',
+                'hint_cost': 10,
+                'rain_chance': 0.0,
+                'npc_alert_radius': 2
+            },
+            'normal': {
+                'time': 300,
+                'tasks': 7,
+                'name': 'Normal',
+                'hint_cost': 15,
+                'rain_chance': 0.15,
+                'npc_alert_radius': 3
+            },
+            'hard': {
+                'time': 180,
+                'tasks': 7,
+                'name': 'Hard',
+                'hint_cost': 25,
+                'rain_chance': 0.35,
+                'npc_alert_radius': 4
+            }
         }
+
         
         # High score manager
         scores_path = os.path.join(os.path.dirname(__file__), "high_scores.json")
@@ -402,6 +485,7 @@ class RVCECampusRunner:
         
         # UI message display
         self.ui_message = None
+        self.max_time=1
         self.ui_message_timer = 0
         
         # Player visual effect states
@@ -417,12 +501,25 @@ class RVCECampusRunner:
         
         # Hint system
         self.hint_used = False  # Track if hint was used for current task
-        self.hint_cost = 15  # Points deducted for using hint
+        self.hint_cost = self.difficulty_settings[self.difficulty]['hint_cost']
         self.show_hint = False  # Whether hint is currently shown
         
         # Star shimmer effect (when gaining points)
         self.star_shimmer = 0  # Shimmer intensity (0-1, decays over time)
         self.last_score = 0  # To detect score changes
+        
+        # Level progression system
+        self.current_level = 1
+        self.level_thresholds = {
+            1: 0,      # Level 1: start
+            2: 200,    # Level 2: need 200 points
+            3: 500     # Level 3: need 500 points
+        }
+        self.level_names = {1: "Fresher", 2: "Junior", 3: "Senior"}
+        
+        # Pathfinding usage tracking (for independent discovery bonus)
+        self.used_pathfinding = False  # Did player use B/A keys for current task?
+        self.independent_bonus = 20  # Bonus for finding shortest path without B/A
         
         # Sound manager
         self.sound_manager = None
@@ -438,28 +535,55 @@ class RVCECampusRunner:
         # Game is not initialized yet - will be done when starting
         self.game_initialized = False
         
+    def wrap_text(self, text, font, max_width):
+        words = text.split(" ")
+        lines = []
+        current = ""
+
+        for word in words:
+            test = current + word + " "
+            if font.size(test)[0] <= max_width:
+                current = test
+            else:
+                lines.append(current.strip())
+                current = word + " "
+
+        if current:
+            lines.append(current.strip())
+
+        return lines
+
+        
     def load_assets(self):
         """Generate all visual assets programmatically"""
         print("Generating game assets...")
         
         # Building icons
         self.building_icons = {
-            "Admin Block": AssetGenerator.create_building_icon("admin"),
-            "Library": AssetGenerator.create_building_icon("library"),
-            "Food Court (MINGOS)": AssetGenerator.create_building_icon("food"),
-            "Boys Hostel": AssetGenerator.create_building_icon("hostel"),
-            "DTL Innovation Hub": AssetGenerator.create_building_icon("innovation"),
-            "AI-ML & MCA Dept": AssetGenerator.create_building_icon("lab"),
-            "Mechanical Dept": AssetGenerator.create_building_icon("computer"),
-            "BT Quadrangle": AssetGenerator.create_building_icon("lab"),
-            "BT & EIE Dept": AssetGenerator.create_building_icon("computer"),
-            "IEM Dept": AssetGenerator.create_building_icon("computer"),
-            "EEE Dept": AssetGenerator.create_building_icon("computer"),
-            "CSE Dept": AssetGenerator.create_building_icon("computer"),
-            "ECE Dept": AssetGenerator.create_building_icon("computer"),
-            "Main Gate": AssetGenerator.create_building_icon("default"),
-            "Incubation Center": AssetGenerator.create_building_icon("innovation"),
-        }
+        "CSE Ground": AssetGenerator.create_building_icon("default"),
+        "Civil Dept":  AssetGenerator.create_building_icon("default"),
+        "Admin Block": AssetGenerator.create_building_icon("admin"),
+        "DTL Innovation Hub": AssetGenerator.create_building_icon("innovation"),
+        "Mechanical Dept": AssetGenerator.create_building_icon("mechanical"),
+        "BT Quadrangle": AssetGenerator.create_building_icon("biotech"),
+        "AI-ML & MCA Dept": AssetGenerator.create_building_icon("ai"),
+        "BT & EIE Dept": AssetGenerator.create_building_icon("electronics"),
+        "IEM Dept": AssetGenerator.create_building_icon("management"),
+        "Central Maintenance Office": AssetGenerator.create_building_icon("default"),
+        "EEE Dept": AssetGenerator.create_building_icon("power"),
+        "CSE Dept": AssetGenerator.create_building_icon("code"),
+        "ETE Dept": AssetGenerator.create_building_icon("computer"),
+        "Chemical & Physics Dept": AssetGenerator.create_building_icon("lab"),
+        "VIP Lounge": AssetGenerator.create_building_icon("vip"),
+        "ASE & ISE Dept": AssetGenerator.create_building_icon("computer"),
+        "MM Foods": AssetGenerator.create_building_icon("food"),
+        "Kotak Bank ATM": AssetGenerator.create_building_icon("default"),
+        "RV University": AssetGenerator.create_building_icon("default"),
+        "Boys Hostel": AssetGenerator.create_building_icon("hostel"),
+        "Library": AssetGenerator.create_building_icon("library"),
+        "ECE Dept": AssetGenerator.create_building_icon("electronics"),
+    }
+
         
         # Player sprites (animation frames)
         self.player_sprites = [
@@ -479,17 +603,15 @@ class RVCECampusRunner:
         self.nav_graph = RVCEGraph()
         self.undo_stack = UndoStack()
         self.task_manager = TaskManager()
-        
         # Calculate cell size
-        map_area_width = self.screen_width - 500
+        map_area_width = self.map_width
         map_area_height = self.screen_height - 100
         self.game_map.cell_size = min(map_area_width // 20, map_area_height // 18)
-        
         # Game state - use difficulty settings
+        self.hint_cost = self.difficulty_settings[self.difficulty]['hint_cost']
         self.state = GameState.PLAYING
         self.player_pos = (2, 15)
         self.score = 0
-        
         # Step tracking for efficiency scoring
         self.task_steps = 0  # Actual steps player has taken
         self.expected_path_length = 0  # BFS optimal path length
@@ -535,7 +657,8 @@ class RVCECampusRunner:
         self.nav_graph.build_from_rvce_grid(self.game_map, self.tile_map)
         
         # Initialize camera system
-        self.camera = Camera(self.screen_width, self.screen_height)
+        self.camera = Camera(self.map_width, self.screen_height)
+
         # Snap camera immediately to player position
         player_world_x = self.player_pos[0] * self.game_map.cell_size + self.game_map.cell_size / 2
         player_world_y = self.player_pos[1] * self.game_map.cell_size + self.game_map.cell_size / 2
@@ -552,12 +675,24 @@ class RVCECampusRunner:
         # Initialize NPC manager
         self.npc_manager = NPCManager()
         self.npc_manager.spawn_npcs(self.game_map, self.buildings)
+
+        npc_radius = self.difficulty_settings[self.difficulty]['npc_alert_radius']
+        for npc in self.npc_manager.npcs:
+            npc.detection_range = npc_radius
+
         
         # Initialize mini-map (position in top-right dashboard area)
         self.mini_map = MiniMap(self.screen_width - 180, 50, 150)
         
         # Setup tasks
         self.setup_academic_tasks()
+        # Trigger rain probabilistically based on difficulty
+        rain_chance = self.difficulty_settings[self.difficulty]['rain_chance']
+        if self.event_manager and random.random() < rain_chance:
+            self.event_manager.schedule_event(
+                RainEvent(duration=20 + int(20 * rain_chance))
+            )
+
         
     def setup_rvce_campus(self):
         map_data = [
@@ -588,197 +723,367 @@ class RVCECampusRunner:
         self.buildings = {
             "Main Gate": (2, 15),
             "Admin Block": (3, 3),
+
             "DTL Innovation Hub": (6, 3),
             "Mechanical Dept": (11, 3),
+            "Civil Dept": (9, 3),
+
             "BT Quadrangle": (7, 5),
             "AI-ML & MCA Dept": (14, 5),
+            "ASE & ISE Dept": (12, 5),
+
             "BT & EIE Dept": (16, 7),
             "IEM Dept": (4, 7),
             "EEE Dept": (9, 7),
+
             "CSE Dept": (14, 9),
+            "CSE Ground": (12, 9),
             "ECE Dept": (7, 11),
+            "ETE Dept": (5, 11),
+
+            "Chemical & Physics Dept": (10, 11),
+            "Central Maintenance Office": (3, 11),
+
             "Library": (11, 13),
-            "Food Court (MINGOS)": (4, 13),
-            "Boys Hostel": (16, 15),
-            "Incubation Center": (13, 15)
+            "MM Foods": (4, 13),
+            "Kotak Bank ATM": (6, 13),
+
+            "VIP Lounge": (9, 13),
+            "RV University": (13, 13),
+
+            "Boys Hostel": (16, 15)
         }
+
     
     def setup_special_tiles(self):
-        """Setup special tile types for dynamic gameplay"""
-        # Add ice tiles (near library area)
-        ice_positions = [(9, 13), (10, 13), (12, 13)]
-        for x, y in ice_positions:
-            if self.game_map.is_walkable(x, y):
-                self.tile_map[y][x] = TileType.ICE
-                
-        # Add grass tiles (garden areas)
-        grass_positions = [(5, 5), (6, 5), (5, 7), (6, 7), (15, 7), (15, 9)]
-        for x, y in grass_positions:
-            if self.game_map.is_walkable(x, y):
-                self.tile_map[y][x] = TileType.GRASS
-        
-        # Helper function to check if all buildings are reachable from player start
-        def all_buildings_reachable():
-            """BFS to verify all buildings are reachable from player start"""
-            start = (2, 15)  # Main Gate / Player start
-            visited = set()
-            queue = deque([start])
-            visited.add(start)
-            
-            while queue:
-                x, y = queue.popleft()
-                for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-                    nx, ny = x + dx, y + dy
-                    if (nx, ny) not in visited:
-                        if 0 <= nx < self.game_map.width and 0 <= ny < self.game_map.height:
-                            tile = self.tile_map[ny][nx]
-                            # Check if walkable (portals ARE walkable)
-                            if tile != TileType.WALL and tile != TileType.CONSTRUCTION:
-                                visited.add((nx, ny))
-                                queue.append((nx, ny))
-            
-            # Check all building positions are reachable
-            for name, pos in self.buildings.items():
-                if pos not in visited:
-                    return False, name
-            return True, None
-        
-        # Try portal placement - only if all buildings remain reachable
-        # Portals should be on intersection tiles, not bottleneck paths
-        potential_portal_pairs = [
-            ((7, 13), (13, 9)),    # Library area to CSE area
-            ((5, 9), (15, 11)),    # Mid-left to mid-right
-            ((3, 11), (17, 5)),    # Left side to right side
-        ]
-        
-        portal_placed = False
-        for portal_a, portal_b in potential_portal_pairs:
-            # Check both positions are walkable NORMAL tiles (not buildings)
-            if (self.game_map.is_walkable(*portal_a) and 
-                self.game_map.is_walkable(*portal_b) and
-                portal_a not in self.buildings.values() and
-                portal_b not in self.buildings.values()):
-                
-                # Temporarily place portals
-                old_a = self.tile_map[portal_a[1]][portal_a[0]]
-                old_b = self.tile_map[portal_b[1]][portal_b[0]]
-                self.tile_map[portal_a[1]][portal_a[0]] = TileType.PORTAL_A
-                self.tile_map[portal_b[1]][portal_b[0]] = TileType.PORTAL_B
-                
-                # Verify all buildings still reachable
-                reachable, blocked = all_buildings_reachable()
-                
-                if reachable:
-                    # Keep portals
-                    self.tile_effect_handler.set_portals(portal_a, portal_b)
-                    portal_placed = True
-                    break
-                else:
-                    # Revert portals - they block access to a building
-                    self.tile_map[portal_a[1]][portal_a[0]] = old_a
-                    self.tile_map[portal_b[1]][portal_b[0]] = old_b
-                    print(f"Skipped portal pair {portal_a}-{portal_b}: would block {blocked}")
-        
-        if not portal_placed:
-            print("No valid portal positions found - skipping portals")
-            
-        # Add trap tiles (verify they don't block paths)
-        trap_positions = [(9, 9), (5, 11)]
-        for x, y in trap_positions:
-            if self.game_map.is_walkable(x, y) and (x, y) not in self.buildings.values():
-                self.tile_map[y][x] = TileType.TRAP
-                
-        # Add booster tiles
-        booster_positions = [(7, 7), (13, 13)]
-        for x, y in booster_positions:
-            if self.game_map.is_walkable(x, y) and (x, y) not in self.buildings.values():
-                self.tile_map[y][x] = TileType.BOOSTER
-                
-        # Add water tiles
-        water_positions = [(9, 5), (10, 5), (11, 5)]
-        for x, y in water_positions:
-            if self.game_map.is_walkable(x, y) and (x, y) not in self.buildings.values():
-                self.tile_map[y][x] = TileType.WATER
-                
-    def setup_academic_tasks(self):
-        tasks = {
-            "task1": {
-                "id": "task1",
-                "name": "First Day Orientation",
-                "building": "Admin Block",
-                "riddle": "Where new beginnings start, paperwork and IDs you'll get.\nFind the building where all students first met!",
-                "points": 50,
-                "hint": "Head to the administrative heart of RVCE"
-            },
-            "task2": {
-                "id": "task2", 
-                "name": "Collect Syllabus",
-                "building": "BT Quadrangle",
-                "riddle": "For Biotech dreams, where formulas unfold,\nGet your syllabus, future stories to be told!",
-                "points": 75,
-                "hint": "Find the building for Biotechnology studies"
-            },
-            "task3": {
-                "id": "task3",
-                "name": "AI Lab Session", 
-                "building": "AI-ML & MCA Dept",
-                "riddle": "Where machines learn and algorithms play,\nAttend your first AI lab session today!",
-                "points": 100,
-                "hint": "Look for the department of Artificial Intelligence"
-            },
-            "task4": {
-                "id": "task4",
-                "name": "Library Research",
-                "building": "Library", 
-                "riddle": "Silent knowledge, books galore,\nResearch for projects, always learn more!",
-                "points": 80,
-                "hint": "Find the building with the most books"
-            },
-            "task5": {
-                "id": "task5",
-                "name": "Lunch Break",
-                "building": "Food Court (MINGOS)", 
-                "riddle": "Hungry from studies, need some fuel,\nFind the place that's really cool!",
-                "points": 60,
-                "hint": "Time for food at the popular eating spot"
-            },
-            "task6": {
-                "id": "task6",
-                "name": "Innovation Workshop",
-                "building": "DTL Innovation Hub",
-                "riddle": "Where ideas spark and startups grow,\nAttend a workshop, your skills to show!",
-                "points": 90,
-                "hint": "Visit the innovation and entrepreneurship center"
-            },
-            "task7": {
-                "id": "task7",
-                "name": "Hostel Check-in", 
-                "building": "Boys Hostel",
-                "riddle": "Day is ending, sun's going down,\nFind your room in campus town!",
-                "points": 70,
-                "hint": "Head to your accommodation for the night"
-            }
+        """Setup special tile types - currently disabled"""
+        # All special tiles removed as per user request
+        pass
+    
+    RIDDLE_BANK = {
+        "CSE Ground": {
+            "easy": [
+                "Walls do not define this place,\nYet crowds recognize its importance.\nVoices rise, banners appear,\nAnd silence breaks only when needed.",
+                "Neither classroom nor corridor,\nThis space waits patiently.\nWhen people gather,\nIt transforms."
+            ],
+            "normal": [
+                "Empty most days, alive on special ones,\nThis ground remembers applause.\nThe sky acts as its ceiling.",
+                "No permanent structure commands attention here,\nOnly moments do."
+            ],
+            "hard": [
+                "A transient epicenter,\nWhere significance exists only\nWhen observers arrive."
+            ]
+        },
+
+        "Civil Dept": {
+            "easy": [
+                "Before buildings rise,\nThey exist here first.\nMeasurements matter more than imagination.",
+                "Lines, loads, and limits\nAre debated long before construction."
+            ],
+            "normal": [
+                "Gravity is respected here,\nNot challenged.\nDesign bows to physics.",
+                "What stands strong outside\nWas calculated within."
+            ],
+            "hard": [
+                "A discipline devoted\nTo preventing collapse\nThrough foresight."
+            ]
+        },
+
+        "Admin Block": {
+            "easy": [
+                "No lectures echo here,\nYet decisions linger.\nForms move faster than people.",
+                "Authority does not shout here,\nIt stamps."
+            ],
+            "normal": [
+                "Students arrive uncertain,\nLeave with instructions.\nRules sleep inside files.",
+                "Processes outnumber conversations."
+            ],
+            "hard": [
+                "Power exercised quietly\nThrough procedure."
+            ]
+        },
+
+        "DTL Innovation Hub": {
+            "easy": [
+                "Failure is expected here,\nAnd encouraged.\nIdeas begin unfinished.",
+                "No syllabus dictates progress,\nOnly curiosity."
+            ],
+            "normal": [
+                "Mentors replace lecturers,\nPrototypes replace exams.",
+                "Questions matter more\nThan correct answers."
+            ],
+            "hard": [
+                "A controlled space\nFor intellectual risk-taking."
+            ]
+        },
+
+        "Mechanical Dept": {
+            "easy": [
+                "Motion is explained,\nNot assumed.\nMachines obey laws taught here.",
+                "Energy enters as theory\nAnd exits as movement."
+            ],
+            "normal": [
+                "Heat, force, and motion\nShare equal importance.",
+                "Nothing moves without reason\nInside these walls."
+            ],
+            "hard": [
+                "The science of turning energy\nInto obedience."
+            ]
+        },
+
+        "BT Quadrangle": {
+            "easy": [
+                "An open space surrounded by study,\nWhere discussions spill outside classrooms.",
+                "Life sciences breathe\nBeyond walls here."
+            ],
+            "normal": [
+                "A pause between theory sessions,\nYet still academic.",
+                "Learning continues even without lectures."
+            ],
+            "hard": [
+                "A communal extension\nOf biological inquiry."
+            ]
+        },
+
+        "AI-ML & MCA Dept": {
+            "easy": [
+                "Machines learn without awareness,\nGuided by humans here.",
+                "Patterns matter more than facts."
+            ],
+            "normal": [
+                "Data replaces intuition,\nModels replace guesses.",
+                "Logic trains systems\nTo imitate thinking."
+            ],
+            "hard": [
+                "An attempt to formalize intelligence\nWithout consciousness."
+            ]
+        },
+
+        "BT & EIE Dept": {
+            "easy": [
+                "Living systems meet control logic\nInside.",
+                "Feedback loops define success."
+            ],
+            "normal": [
+                "Biology is regulated here,\nNot left to chance.",
+                "Signals guide outcomes."
+            ],
+            "hard": [
+                "Where life meets precision\nThrough instrumentation."
+            ]
+        },
+
+        "IEM Dept": {
+            "easy": [
+                "Decisions are engineered here,\nNot guessed.",
+                "Planning matters as much as design."
+            ],
+            "normal": [
+                "Optimization replaces intuition,\nEfficiency replaces excess."
+            ],
+            "hard": [
+                "The science of managing\nTechnical complexity."
+            ]
+        },
+
+        "Central Maintenance Office": {
+            "easy": [
+                "When something fails,\nThis place responds.",
+                "Invisible work keeps systems alive."
+            ],
+            "normal": [
+                "Problems end here,\nNot begin.",
+                "Function matters more than theory."
+            ],
+            "hard": [
+                "Operational continuity\nWithout recognition."
+            ]
+        },
+
+        "EEE Dept": {
+            "easy": [
+                "Energy flows unseen,\nBut is controlled here.",
+                "Power listens to equations."
+            ],
+            "normal": [
+                "Fields, currents, and systems\nShape modern life."
+            ],
+            "hard": [
+                "Mastery over invisible forces."
+            ]
+        },
+
+        "CSE Dept": {
+            "easy": [
+                "Instructions become outcomes here,\nThrough logic.",
+                "Machines obey written thought."
+            ],
+            "normal": [
+                "Abstractions transform\nInto execution.",
+                "Code becomes reality."
+            ],
+            "hard": [
+                "A place where symbols\nControl systems."
+            ]
+        },
+
+        "ETE Dept": {
+            "easy": [
+                "Messages travel far\nFrom this discipline.",
+                "Distance challenges clarity."
+            ],
+            "normal": [
+                "Transmission defines success\nMore than origin."
+            ],
+            "hard": [
+                "Preserving information\nAcross space."
+            ]
+        },
+
+        "Chemical & Physics Dept": {
+            "easy": [
+                "Matter behaves strangely here,\nYet predictably.",
+                "Forces explain the universe."
+            ],
+            "normal": [
+                "Reactions and laws\nShare classrooms.",
+                "Reality is questioned methodically."
+            ],
+            "hard": [
+                "Understanding existence\nThrough experiment."
+            ]
+        },
+
+        "VIP Lounge": {
+            "easy": [
+                "Comfort replaces urgency here.",
+                "Access is limited."
+            ],
+            "normal": [
+                "Status dictates entry,\nNot curiosity."
+            ],
+            "hard": [
+                "A controlled environment\nFor influence."
+            ]
+        },
+
+        "ASE & ISE Dept": {
+            "easy": [
+                "Systems move first in simulations,\nThen in reality.",
+                "Flight begins on screens."
+            ],
+            "normal": [
+                "Complex systems are tested\nBefore trust is granted."
+            ],
+            "hard": [
+                "Engineering stability\nIn dynamic environments."
+            ]
+        },
+
+        "MM Foods": {
+            "easy": [
+                "Hunger interrupts focus,\nThis place restores it.",
+                "Not academic,\nYet essential."
+            ],
+            "normal": [
+                "Students arrive without planning,\nLeave satisfied."
+            ],
+            "hard": [
+                "An external solution\nTo internal fatigue."
+            ]
+        },
+        "ECE Dept": {
+            "easy": [
+                "Signals whisper through wires here,\nInvisible yet precise.",
+                "Communication begins\nWith understanding waves."
+            ],
+            "normal": [
+                "Information survives noise\nThrough discipline.",
+                "Clarity is engineered,\nNot assumed."
+            ],
+            "hard": [
+                "Preserving meaning\nAcross imperfect channels."
+            ]
+        },
+
+        "Kotak Bank ATM": {
+            "easy": [
+                "Numbers unlock resources here.",
+                "Trust flows digitally."
+            ],
+            "normal": [
+                "Money moves silently,\nWithout negotiation."
+            ],
+            "hard": [
+                "Automated access\nTo stored value."
+            ]
+        },
+
+        "RV University": {
+            "easy": [
+                "Another academic presence\nShares the landscape.",
+                "Parallel learning paths exist."
+            ],
+            "normal": [
+                "Institutions coexist,\nKnowledge overlaps."
+            ],
+            "hard": [
+                "A neighboring ecosystem\nOf intellect."
+            ]
+        },
+
+        "Boys Hostel": {
+            "easy": [
+                "Energy fades here,\nRecovery begins.",
+                "Days conclude within."
+            ],
+            "normal": [
+                "Shared living defines routine,\nPrivacy is negotiated."
+            ],
+            "hard": [
+                "Rest structured\nWithin community."
+            ]
+        },
+
+        "Library": {
+            "easy": [
+                "Silence amplifies learning.",
+                "Knowledge waits patiently."
+            ],
+            "normal": [
+                "Information organized\nAcross time."
+            ],
+            "hard": [
+                "A disciplined archive\nOf thought."
+            ]
         }
-        
-        # Limit tasks based on difficulty
+    }
+    def setup_academic_tasks(self):
+        task_id = 1
+
         max_tasks = self.difficulty_settings[self.difficulty]['tasks']
-        task_list = list(tasks.items())[:max_tasks]
-        
-        for task_id, task_data in task_list:
-            self.task_manager.add_task(task_id, task_data)
-        
+        for building in random.sample(list(self.buildings.keys()), max_tasks):
+            if building not in self.RIDDLE_BANK:
+                continue  # safety
+
+            task = {
+                "id": f"task{task_id}",
+                "name": f"Visit {building}",
+                "building": building,
+                "riddle": random.choice(self.RIDDLE_BANK[building].get(self.difficulty,[])),
+                "points": random.randint(50, 120),
+                "hint": f"Explore the area related to {building}"
+            }
+
+            self.task_manager.add_task(task["id"], task)
+            task_id += 1
+
         first_task = self.task_manager.get_next_task()
         if first_task:
             self.task_manager.assign_task(first_task)
-            # Calculate expected path for first task
-            current = self.task_manager.current_task
-            if current:
-                target = self.buildings.get(current['building'])
-                if target:
-                    expected_path = self.find_path_bfs(self.player_pos, target)
-                    self.expected_path_length = len(expected_path) if expected_path else 0
-                    self.task_start_pos = self.player_pos
-                    print(f"First task: {current['name']} (optimal: {self.expected_path_length} steps)")
+
+
+                
     
     def heuristic(self, a, b):
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
@@ -906,21 +1211,44 @@ class RVCECampusRunner:
                         efficiency_message = f" {efficiency_bonus} (took many detours)"
                 
                 total_points = base_points + efficiency_bonus
-                self.score += total_points
+                
+                # Independent path discovery bonus (+20 if found shortest path without using B/A)
+                independent_bonus = 0
+                if not self.used_pathfinding and self.task_steps <= self.expected_path_length + 2:
+                    # Player found near-optimal path without using pathfinding keys!
+                    independent_bonus = self.independent_bonus
+                    efficiency_message += f" +{independent_bonus} DISCOVERY BONUS!"
+                    if self.sound_manager:
+                        self.sound_manager.play('victory')
+                
+                self.score += total_points + independent_bonus
                 
                 print(f"✓ Task Completed: {current_task['name']} (+{base_points} base{efficiency_message})")
                 print(f"   Path: {self.task_steps} steps vs {self.expected_path_length} expected (BFS optimal)")
                 
-                if self.sound_manager and efficiency_bonus <= 0:
+                if self.sound_manager and efficiency_bonus <= 0 and independent_bonus == 0:
                     self.sound_manager.play('task_complete')
+                
+                # Check for level up
+                old_level = self.current_level
+                for level in [3, 2, 1]:
+                    if self.score >= self.level_thresholds[level]:
+                        self.current_level = level
+                        break
+                if self.current_level > old_level:
+                    self.ui_message = f"🎉 LEVEL UP! Now {self.level_names[self.current_level]}!"
+                    self.ui_message_timer = 3.0
+                    if self.sound_manager:
+                        self.sound_manager.play('victory')
                 
                 self.task_manager.complete_task(current_task['id'])
                 self.current_path = []
                 
-                # Reset step counter and hint for next task
+                # Reset step counter, hint, and pathfinding flag for next task
                 self.task_steps = 0
                 self.hint_used = False
                 self.show_hint = False
+                self.used_pathfinding = False
                 
                 next_task = self.task_manager.get_next_task()
                 if next_task:
@@ -1111,12 +1439,14 @@ class RVCECampusRunner:
                             target = self.buildings[self.task_manager.current_task['building']]
                             self.current_path = self.find_path_bfs(self.player_pos, target)
                             self.path_algorithm = "BFS"
+                            self.used_pathfinding = True  # Track that player used pathfinding
                             print(f"✓ BFS Path: {len(self.current_path)} cells, {self.algorithm_stats['BFS']} nodes explored")
                     elif event.key == pygame.K_a:
                         if self.task_manager.current_task:
                             target = self.buildings[self.task_manager.current_task['building']]
                             self.current_path = self.find_path_astar(self.player_pos, target)
                             self.path_algorithm = "A*"
+                            self.used_pathfinding = True  # Track that player used pathfinding
                             print(f"✓ A* Path: {len(self.current_path)} cells, {self.algorithm_stats['A*']} nodes explored")
                     elif event.key == pygame.K_c:
                         self.current_path = []
@@ -1299,7 +1629,7 @@ class RVCECampusRunner:
             
             # Check for nearby NPC (for E key interaction)
             self.nearby_npc = self.npc_manager.check_interaction(self.player_pos)
-            if self.nearby_npc and not self.nearby_npc.has_interacted:
+            if self.nearby_npc and not self.nearby_npc.has_interacted and self.ui_message is None:
                 # Show prompt to press E
                 if self.ui_message != "Press E to talk":
                     self.ui_message = "Press E to talk"
@@ -1309,11 +1639,15 @@ class RVCECampusRunner:
     
     def draw_gradient_background(self):
         for y in range(self.screen_height):
-            progress = y / self.screen_height
-            r = int(10 + progress * 15)
-            g = int(15 + progress * 20)
-            b = int(30 + progress * 25)
+            t = y / self.screen_height
+            r = int(20 + 30 * t)
+            g = int(40 + 60 * t)
+            b = int(70 + 90 * t)
             pygame.draw.line(self.screen, (r, g, b), (0, y), (self.screen_width, y))
+        for _ in range(3000):
+            x = random.randint(0, self.screen_width)
+            y = random.randint(0, self.screen_height)
+            self.screen.set_at((x, y), (20, 20, 30))
     
     def draw(self):
         # Handle menu screen drawing
@@ -1347,7 +1681,8 @@ class RVCECampusRunner:
         
         # Background
         self.draw_gradient_background()
-        
+        self.screen.set_clip(pygame.Rect(0, 0, self.map_width, self.screen_height))
+
         # Use camera-based rendering if available
         if self.camera:
             # Camera-based map rendering
@@ -1563,18 +1898,7 @@ class RVCECampusRunner:
                 npcs = self.npc_manager.npcs if self.npc_manager else []
                 self.mini_map.draw(self.screen, self.game_map, self.player_pos, 
                                   target_pos, npcs, self.fog_of_war)
-            
-            # Draw UI message
-            if self.ui_message:
-                msg_font = pygame.font.SysFont('Segoe UI', 24, bold=True)
-                msg_surface = msg_font.render(self.ui_message, True, (255, 255, 100))
-                msg_rect = msg_surface.get_rect(center=(self.screen_width // 3, 50))
-                
-                # Background
-                bg_rect = msg_rect.inflate(20, 10)
-                pygame.draw.rect(self.screen, (30, 35, 50), bg_rect, border_radius=8)
-                pygame.draw.rect(self.screen, (100, 150, 255), bg_rect, 2, border_radius=8)
-                self.screen.blit(msg_surface, msg_rect)
+        
             
             # Draw event warnings
             if self.event_manager:
@@ -1629,7 +1953,11 @@ class RVCECampusRunner:
             self.screen.blit(player_sprite, player_rect.topleft)
         
         # Draw new top HUD (timer, riddle, score star)
+        self.screen.set_clip(None)
+
         self.draw_top_hud()
+        self.draw_right_panel()
+
         pygame.display.flip()
     
     def draw_top_hud(self):
@@ -1640,17 +1968,17 @@ class RVCECampusRunner:
         bar_color = (100, 255, 150) if self.time_remaining > 60 else (255, 100, 100)
         
         # Background bar
-        pygame.draw.rect(self.screen, (40, 40, 50), (0, 0, self.screen_width, bar_height + 4))
+        pygame.draw.rect(self.screen, (40, 40, 50), (0, 0, self.map_width, bar_height + 4))
         # Timer progress
-        pygame.draw.rect(self.screen, bar_color, (2, 2, int((self.screen_width - 4) * time_ratio), bar_height))
+        pygame.draw.rect(self.screen, bar_color, (2, 2, int((self.map_width - 4) * time_ratio), bar_height))
         
         # Timer text in center
         time_text = self.font.render(f"⏱ {self.time_remaining}s", True, bar_color)
-        time_rect = time_text.get_rect(center=(self.screen_width // 2, bar_height + 18))
+        time_rect = time_text.get_rect(center=(self.map_width // 2, bar_height + 18))
         self.screen.blit(time_text, time_rect)
         
         # === GOLDEN STAR SCORE (top right) ===
-        star_x = self.screen_width - 60
+        star_x = self.map_width - 60
         star_y = 45
         star_radius = 25
         
@@ -1685,65 +2013,24 @@ class RVCECampusRunner:
         score_rect = score_text.get_rect(midright=(star_x - star_radius - 10, star_y))
         self.screen.blit(score_text, score_rect)
         
-        # === RIDDLE / TASK DISPLAY (below timer, left side) ===
-        if self.task_manager.current_task:
-            task = self.task_manager.current_task
-            riddle_y = 35
-            max_riddle_x = self.screen_width - 150  # Don't overlap with star
-            
-            # Task name
-            task_text = self.font.render(f"📋 {task['name']}", True, (150, 200, 255))
-            self.screen.blit(task_text, (15, riddle_y))
-            riddle_y += 22
-            
-            # Riddle text (word wrap if needed)
-            riddle = task.get('riddle', '')
-            lines = riddle.split('\\n') if '\\n' in riddle else [riddle]
-            for line in lines[:2]:  # Max 2 lines
-                max_chars = 50  # Reduced to prevent overlap
-                if len(line) > max_chars:
-                    line = line[:max_chars - 3] + "..."
-                riddle_text = self.small_font.render(line, True, (200, 200, 220))
-                self.screen.blit(riddle_text, (20, riddle_y))
-                riddle_y += 16
-            
-            # Hint button / display
-            hint_y = riddle_y + 3
-            if self.show_hint:
-                # Show hint text
-                hint = task.get('hint', 'No hint available')
-                if len(hint) > 45:
-                    hint = hint[:42] + "..."
-                hint_surface = self.small_font.render(f"💡 {hint}", True, (255, 220, 100))
-                self.screen.blit(hint_surface, (20, hint_y))
-            else:
-                # Show hint button prompt
-                hint_color = (100, 100, 100) if self.hint_used else (150, 150, 180)
-                hint_prompt = f"[H] Hint" + (" (used)" if self.hint_used else f" (-{self.hint_cost} pts)")
-                hint_surface = self.small_font.render(hint_prompt, True, hint_color)
-                self.screen.blit(hint_surface, (20, hint_y))
-            
-            # Building name (right side, below timer but above star area)
-            building = task['building']
-            if len(building) > 20:
-                building = building[:17] + "..."
-            building_text = self.small_font.render(f"📍 {building}", True, (150, 180, 255))
-            building_rect = building_text.get_rect(topright=(self.screen_width - 130, 35))
-            self.screen.blit(building_text, building_rect)
-        
-        # === UI MESSAGE (center screen if active) ===
+        # Level display below score and star
+        level_color = [(150, 200, 150), (100, 200, 255), (255, 200, 100)][self.current_level - 1]
+        level_text = self.small_font.render(f"Lvl {self.current_level}: {self.level_names[self.current_level]}", 
+                                             True, level_color)
+        level_rect = level_text.get_rect(topright=(self.map_width - 15, star_y + star_radius + 5))
+        self.screen.blit(level_text, level_rect)
+
         if self.ui_message and self.ui_message_timer > 0:
-            msg_surface = self.large_font.render(self.ui_message, True, (255, 255, 200))
-            msg_rect = msg_surface.get_rect(center=(self.screen_width // 2, self.screen_height - 60))
-            # Background
-            bg_rect = msg_rect.inflate(20, 10)
-            pygame.draw.rect(self.screen, (30, 30, 40, 200), bg_rect, border_radius=10)
-            self.screen.blit(msg_surface, msg_rect)
-        
+            msg = self.large_font.render(self.ui_message, True, (255, 255, 200))
+            rect = msg.get_rect(center=(self.map_width // 2, self.screen_height - 70))
+            bg = rect.inflate(20, 10)
+            pygame.draw.rect(self.screen, (30, 30, 40), bg, border_radius=10)
+            self.screen.blit(msg, rect)
         # === CONTROLS (bottom left compact) ===
         controls_text = self.small_font.render("↑↓←→ Move | H Hint | B/A Path | P Pause | ESC Menu", 
-                                                True, (120, 120, 140))
-        self.screen.blit(controls_text, (10, self.screen_height - 25))
+                                                True, (90, 95, 115))
+        self.screen.blit(controls_text, (10, self.screen_height - 18))
+        
         
         # === GAME STATE OVERLAYS ===
         if self.state == GameState.PAUSED:
@@ -1752,173 +2039,95 @@ class RVCECampusRunner:
             self.draw_overlay("🏆 VICTORY!", f"Score: {self.score} | R - Restart | M - Menu", (100, 255, 150))
         elif self.state == GameState.GAME_OVER:
             self.draw_overlay("⏰ TIME'S UP!", f"Score: {self.score} | R - Retry | M - Menu", (255, 100, 100))
-
-    def draw_dashboard(self, map_offset_x, map_width):
-        # Dashboard positioning
-        dashboard_x = map_offset_x + map_width + 30
-        dashboard_width = self.screen_width - dashboard_x - 30
-        dashboard_rect = pygame.Rect(dashboard_x, 30, dashboard_width, self.screen_height - 60)
-        
-        # Dashboard background
-        dashboard_surface = pygame.Surface((dashboard_width, self.screen_height - 60))
-        for y in range(self.screen_height - 60):
-            progress = y / (self.screen_height - 60)
-            r = int(25 + progress * 10)
-            g = int(30 + progress * 10)
-            b = int(50 + progress * 15)
-            pygame.draw.line(dashboard_surface, (r, g, b), (0, y), (dashboard_width, y))
-        self.screen.blit(dashboard_surface, (dashboard_x, 30))
-        
-        pygame.draw.rect(self.screen, (70, 80, 120), dashboard_rect, 3, border_radius=15)
-        
-        x_offset = dashboard_x + 20
-        y_offset = 50
-        
-        # Title
-        title = self.huge_font.render("RVCE", True, (100, 200, 255))
-        self.screen.blit(title, (x_offset, y_offset))
-        y_offset += 55
-        
-        subtitle = self.large_font.render("Campus Runner", True, (200, 220, 255))
-        self.screen.blit(subtitle, (x_offset, y_offset))
-        y_offset += 50
-        
-        # Score card
-        self.draw_card(x_offset - 10, y_offset - 5, dashboard_width - 20, 40, (40, 50, 70))
-        score_text = self.large_font.render(f"⭐ SCORE: {self.score}", True, (255, 220, 100))
-        self.screen.blit(score_text, (x_offset, y_offset))
-        y_offset += 50
-        
-        # Time card with progress
-        time_color = (100, 255, 150) if self.time_remaining > 60 else (255, 100, 100)
-        time_text = self.large_font.render(f"⏱ TIME: {self.time_remaining}s", True, time_color)
-        self.screen.blit(time_text, (x_offset, y_offset))
-        y_offset += 35
-        
-        # Time progress bar
-        bar_width = dashboard_width - 40
-        bar_height = 15
-        progress = max(0, self.time_remaining / 300)
-        self.draw_progress_bar(x_offset, y_offset, bar_width, bar_height, progress, time_color)
-        y_offset += 40
-        
-        # Separator
-        pygame.draw.line(self.screen, (60, 70, 100), (x_offset, y_offset), 
-                        (x_offset + dashboard_width - 40, y_offset), 2)
-        y_offset += 25
-        
-        # Algorithm section
-        algo_title = self.large_font.render("🔍 PATHFINDING", True, (150, 200, 255))
-        self.screen.blit(algo_title, (x_offset, y_offset))
-        y_offset += 35
-        
-        bfs_color = (100, 255, 150) if self.path_algorithm == "BFS" else (100, 100, 100)
-        astar_color = (150, 180, 255) if self.path_algorithm == "A*" else (100, 100, 100)
-        
-        bfs_text = self.font.render("● BFS (B) - Green", True, bfs_color)
-        self.screen.blit(bfs_text, (x_offset, y_offset))
-        y_offset += 25
-        
-        astar_text = self.font.render("● A* (A) - Blue", True, astar_color)
-        self.screen.blit(astar_text, (x_offset, y_offset))
-        y_offset += 25
-        
-        if self.current_path:
-            self.draw_card(x_offset - 5, y_offset - 3, dashboard_width - 30, 45, (40, 60, 40))
-            active_text = self.font.render(f"✓ {self.path_algorithm} ACTIVE", True, (150, 255, 150))
-            self.screen.blit(active_text, (x_offset, y_offset))
-            y_offset += 22
-            
-            stats_text = self.small_font.render(
-                f"{len(self.current_path)} cells | {self.algorithm_stats[self.path_algorithm]} nodes", 
-                True, (180, 220, 180))
-            self.screen.blit(stats_text, (x_offset, y_offset))
-            y_offset += 28
-        else:
-            no_path = self.small_font.render("Press B or A to show path", True, (120, 120, 120))
-            self.screen.blit(no_path, (x_offset, y_offset))
-            y_offset += 25
-        
-        y_offset += 15
-        
-        # Current Mission
-        pygame.draw.line(self.screen, (60, 70, 100), (x_offset, y_offset), 
-                        (x_offset + dashboard_width - 40, y_offset), 2)
-        y_offset += 25
-        
-        mission_title = self.large_font.render("🎯 MISSION", True, (255, 200, 100))
-        self.screen.blit(mission_title, (x_offset, y_offset))
-        y_offset += 35
-        
-        if self.task_manager.current_task:
-            task = self.task_manager.current_task
-            
-            self.draw_card(x_offset - 10, y_offset - 5, dashboard_width - 20, 30, (50, 60, 80))
-            task_name = self.font.render(task['name'], True, (150, 255, 150))
-            self.screen.blit(task_name, (x_offset, y_offset))
-            y_offset += 40
-            
-            # Riddle
-            riddle_lines = task['riddle'].split('\n')
-            for line in riddle_lines:
-                riddle_text = self.small_font.render(line, True, (255, 255, 180))
-                self.screen.blit(riddle_text, (x_offset, y_offset))
-                y_offset += 20
-            
-            y_offset += 10
-            
-            building_text = self.font.render(f"📍 {task['building']}", True, (150, 180, 255))
-            self.screen.blit(building_text, (x_offset, y_offset))
-            y_offset += 25
-            
-            points_text = self.font.render(f"💎 {task['points']} points", True, (255, 200, 100))
-            self.screen.blit(points_text, (x_offset, y_offset))
-            y_offset += 35
-        
-        # Progress
-        pygame.draw.line(self.screen, (60, 70, 100), (x_offset, y_offset), 
-                        (x_offset + dashboard_width - 40, y_offset), 2)
-        y_offset += 25
-        
-        completed_count = len(self.task_manager.completed_tasks)
-        total_tasks = len(self.task_manager.tasks)
-        progress_title = self.large_font.render(f"✓ {completed_count}/{total_tasks} TASKS", True, (150, 255, 150))
-        self.screen.blit(progress_title, (x_offset, y_offset))
-        y_offset += 35
-        
-        # Task progress bar
-        task_progress = completed_count / total_tasks if total_tasks > 0 else 0
-        self.draw_progress_bar(x_offset, y_offset, bar_width, bar_height, task_progress, (100, 255, 150))
-        y_offset += 30
-        
-        # Controls
-        pygame.draw.line(self.screen, (60, 70, 100), (x_offset, y_offset), 
-                        (x_offset + dashboard_width - 40, y_offset), 2)
-        y_offset += 25
-        
-        controls_title = self.large_font.render("⌨ CONTROLS", True, (200, 180, 255))
-        self.screen.blit(controls_title, (x_offset, y_offset))
-        y_offset += 30
-        
-        controls = [
-            "↑↓←→ Move", "E - Talk", "B - BFS", "A - A*",
-            "C - Clear", "P - Pause", "R - Restart", 
-            "+/- Zoom", "M - Menu"
-        ]
-        
-        for control in controls:
-            control_text = self.small_font.render(control, True, (180, 180, 200))
-            self.screen.blit(control_text, (x_offset, y_offset))
-            y_offset += 22
-        
-        # Game state overlays
-        if self.state == GameState.PAUSED:
-            self.draw_overlay("⏸ PAUSED", "Press P to continue | M - Menu", (255, 220, 100))
-        elif self.state == GameState.VICTORY:
-            self.draw_overlay("🏆 VICTORY!", f"Score: {self.score} | R - Restart | M - Menu", (100, 255, 150))
-        elif self.state == GameState.GAME_OVER:
-            self.draw_overlay("⏰ TIME'S UP!", f"Score: {self.score} | R - Retry | M - Menu", (255, 100, 100))
     
+    def draw_right_panel(self):
+        panel_x = self.map_width
+        panel = pygame.Rect(panel_x, 0, self.panel_width, self.screen_height)
+
+        # Background
+        pygame.draw.rect(self.screen, (22, 26, 38), panel)
+        pygame.draw.line(self.screen, (70, 90, 140),
+                        (panel_x, 0), (panel_x, self.screen_height), 3)
+
+        x = panel_x + 20
+        y = 25
+        width = self.panel_width - 40
+
+        # Difficulty + Level badge
+        diff = self.difficulty_settings[self.difficulty]['name']
+        badge = self.large_font.render(
+            f"{diff} · Level {self.current_level}", True, (255, 200, 120)
+        )
+        self.screen.blit(badge, (x, y))
+        pygame.draw.line(
+            self.screen,
+            (60, 70, 95),
+            (x, y + 30),
+            (x + width, y + 30),
+            1
+        )
+        y += 55
+
+        if not self.task_manager.current_task:
+            return
+
+        task = self.task_manager.current_task
+        
+
+        # === TASK CARD ===
+        pygame.draw.rect(self.screen, (35, 45, 65),
+                        (x, y, width, 90), border_radius=10)
+
+        title = self.font.render(task["name"], True, (150, 220, 255))
+        self.screen.blit(title, (x + 12, y + 12))
+
+        loc = self.small_font.render(
+            f"📍 {task['building']}", True, (180, 180, 220)
+        )
+        self.screen.blit(loc, (x + 12, y + 40))
+        y += 110
+
+        # === RIDDLE CARD ===
+        # === RIDDLE CARD ===
+        pygame.draw.rect(self.screen, (30, 35, 55),
+                        (x, y, width, 200), border_radius=10)
+
+        ry = y + 16
+        max_lines = 8
+        line_count = 0
+
+        for line in task["riddle"].split("\n"):
+            wrapped = self.wrap_text(line, self.small_font, width - 24)
+            for w in wrapped:
+                if line_count >= max_lines:
+                    break
+                txt = self.small_font.render(w, True, (230, 230, 240))
+                self.screen.blit(txt, (x + 12, ry))
+                ry += 20
+                line_count += 1
+            if line_count >= max_lines:
+                break
+            ry += 4
+
+        y += 220
+
+        # === HINT CARD ===
+        pygame.draw.rect(self.screen, (40, 40, 60),
+                        (x, y, width, 90), border_radius=10)
+
+        hint_text = (
+            task["hint"]
+            if self.show_hint
+            else f"[H] Show Hint (-{self.hint_cost} pts)"
+        )
+
+        wrapped_hint = self.wrap_text(hint_text, self.small_font, width - 24)
+        hy = y + 12
+        for line in wrapped_hint[:3]:
+            htxt = self.small_font.render(line, True, (220, 190, 120) if self.show_hint else (130, 130, 150))
+            self.screen.blit(htxt, (x + 12, hy))
+            hy += 18
+
     def draw_card(self, x, y, width, height, color):
         """Draw a card background"""
         card_rect = pygame.Rect(x, y, width, height)
