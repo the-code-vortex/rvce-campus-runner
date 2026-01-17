@@ -759,6 +759,7 @@ class RVCECampusRunner:
         """Setup special tile types - currently disabled"""
         # All special tiles removed as per user request
         pass
+<<<<<<< HEAD
     
     RIDDLE_BANK = {
         "CSE Ground": {
@@ -1056,6 +1057,67 @@ class RVCECampusRunner:
             "hard": [
                 "A disciplined archive\nOf thought."
             ]
+=======
+                
+    def setup_academic_tasks(self):
+        tasks = {
+            "task1": {
+                "id": "task1",
+                "name": "First Day Orientation",
+                "building": "Admin Block",
+                "riddle": "Where new beginnings start, paperwork and IDs you'll get.\nFind the building where all students first met!",
+                "points": 50,
+                "hint": "Head to the administrative heart of RVCE"
+            },
+            "task2": {
+                "id": "task2", 
+                "name": "Collect Syllabus",
+                "building": "BT Quadrangle",
+                "riddle": "For Biotech dreams, where formulas unfold,\nGet your syllabus, future stories to be told!",
+                "points": 75,
+                "hint": "Find the building for Biotechnology studies"
+            },
+            "task3": {
+                "id": "task3",
+                "name": "AI Lab Session", 
+                "building": "AI-ML & MCA Dept",
+                "riddle": "Where machines learn and algorithms play,\nAttend your first AI lab session today!",
+                "points": 100,
+                "hint": "Look for the department of Artificial Intelligence"
+            },
+            "task4": {
+                "id": "task4",
+                "name": "Library Research",
+                "building": "Library", 
+                "riddle": "Silent knowledge, books galore,\nResearch for projects, always learn more!",
+                "points": 80,
+                "hint": "Find the building with the most books"
+            },
+            "task5": {
+                "id": "task5",
+                "name": "Lunch Break",
+                "building": "Food Court (MINGOS)", 
+                "riddle": "Hungry from studies, need some fuel,\nFind the place that's really cool!",
+                "points": 60,
+                "hint": "Time for food at the popular eating spot"
+            },
+            "task6": {
+                "id": "task6",
+                "name": "Innovation Workshop",
+                "building": "DTL Innovation Hub",
+                "riddle": "Where ideas spark and startups grow,\nAttend a workshop, your skills to show!",
+                "points": 90,
+                "hint": "Visit the innovation and entrepreneurship center"
+            },
+            "task7": {
+                "id": "task7",
+                "name": "Hostel Check-in", 
+                "building": "Boys Hostel",
+                "riddle": "Day is ending, sun's going down,\nFind your room in campus town!",
+                "points": 70,
+                "hint": "Head to your accommodation for the night"
+            }
+>>>>>>> c604a8fdb2d63ffed303b1b9ab30ea569660b376
         }
     }
     def setup_academic_tasks(self):
