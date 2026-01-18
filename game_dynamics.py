@@ -276,6 +276,7 @@ class NPCType(Enum):
     STUDENT = 1
     SECURITY = 2
     PROFESSOR = 3
+    LAB_ASSISTANT = 4  # Can help clear construction
 
 
 class NPC:
@@ -325,9 +326,14 @@ class NPC:
                 "Stay on the designated paths.",
             ],
             NPCType.PROFESSOR: [
-                "Remember, A* is more efficient than BFS!",
+                "Remember, BFS explores level by level!",
                 "Algorithms are the heart of computer science.",
                 "Don't forget about graph theory!",
+            ],
+            NPCType.LAB_ASSISTANT: [
+                "Need help with that construction? Press L!",
+                "I can clear obstacles for you... for a small fee.",
+                "Those construction sites are no match for me!",
             ],
         }
         return random.choice(dialogues.get(self.npc_type, ["..."]))
@@ -338,6 +344,7 @@ class NPC:
             NPCType.STUDENT: (100, 200, 100),    # Green
             NPCType.SECURITY: (100, 100, 255),   # Blue
             NPCType.PROFESSOR: (200, 150, 100),  # Brown
+            NPCType.LAB_ASSISTANT: (255, 200, 50),  # Yellow
         }
         return colors.get(self.npc_type, (150, 150, 150))
     
@@ -347,6 +354,7 @@ class NPC:
             NPCType.STUDENT: "Student",
             NPCType.SECURITY: "Guard",
             NPCType.PROFESSOR: "Prof",
+            NPCType.LAB_ASSISTANT: "Lab Asst",
         }
         return labels.get(self.npc_type, "NPC")
     
@@ -356,6 +364,7 @@ class NPC:
             NPCType.STUDENT: "👨‍🎓",
             NPCType.SECURITY: "👮",
             NPCType.PROFESSOR: "👨‍🏫",
+            NPCType.LAB_ASSISTANT: "🧪",
         }
         return icons.get(self.npc_type, "👤")
         
@@ -501,6 +510,17 @@ class NPCManager:
         if len(building_positions) > 4:
             prof_start = building_positions[3]
             self.npcs.append(NPC(NPCType.PROFESSOR, prof_start, [prof_start]))
+        
+        # Spawn lab assistants (can clear construction)
+        if len(building_positions) > 6:
+            for i in range(2):  # Spawn 2 lab assistants
+                la_index = 5 + i * 3
+                if la_index < len(building_positions):
+                    la_start = building_positions[la_index]
+                    la_patrol = [la_start]
+                    if la_index + 2 < len(building_positions):
+                        la_patrol.append(building_positions[la_index + 2])
+                    self.npcs.append(NPC(NPCType.LAB_ASSISTANT, la_start, la_patrol))
             
     def update(self, dt, player_pos, game_map, find_path_func):
         """Update all NPCs"""

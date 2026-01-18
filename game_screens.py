@@ -269,6 +269,10 @@ class HowToPlayScreen:
         self.back_button = Button((screen_width - 200) // 2, screen_height - 80, 
                                   200, 50, "← Back to Menu", COLORS['primary'])
         
+        # Scroll state
+        self.scroll_offset = 0
+        self.max_scroll = 0
+        
         self.instructions = [
             ("🎯 OBJECTIVE", [
                 "Complete tasks by navigating to assigned campus buildings.",
@@ -278,25 +282,34 @@ class HowToPlayScreen:
                 "↑ ↓ ← → (Arrow Keys) - Move your character",
                 "U - Undo last move",
             ]),
-            ("🔍 PATHFINDING & HINTS", [
+            ("🔍 PATHFINDING", [
                 "B - Show BFS path (Green)",
                 "C - Clear path",
-                "H - Ask NPC for hint (must be near Prof/Student)",
             ]),
-            ("👨‍🏫 NPCs", [
+            ("👨‍🏫 NPCs & HINTS", [
                 "Professors & Students roam the campus",
-                "Get within 5 nodes to ask for hints (-15 pts)",
+                "H - Ask nearby NPC for hint (-15 pts)",
+                "Must be within 5 nodes of Prof/Student",
+            ]),
+            ("🧪 LAB ASSISTANT", [
+                "Lab Assistants (yellow) can clear construction!",
+                "L - Ask nearby Lab Asst to clear obstacles (-5 pts)",
+                "Must be within 5 nodes + construction active",
+            ]),
+            ("🚧 OBSTACLES", [
+                "Construction zones appear randomly (orange X)",
+                "Block paths for 45 seconds then clear",
+                "BFS auto-reroutes around obstacles",
             ]),
             ("⭐ SCORING", [
                 "+50 pts - Each building visited",
                 "+20 pts - No pathfinding key (B) used",
-                "+30 pts - Optimal path (requires no B)",
-                "-15 pts - Asking NPC for hint",
-                "Time Bonus - 2× remaining seconds at victory",
+                "+30 pts - Optimal path bonus",
+                "-15 pts - Asking for hint | -5 pts - Lab Asst help",
             ]),
             ("🏆 RUNNER TITLES", [
-                "Fresher: 0-249 pts | Sophomore: 250-599 pts",
-                "Senior: 600-799 pts | Super Senior: 800+ pts",
+                "Fresher: 0-249 | Sophomore: 250-599",
+                "Senior: 600-799 | Super Senior: 800+",
             ]),
         ]
         
@@ -305,6 +318,15 @@ class HowToPlayScreen:
             return 'back'
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             return 'back'
+        # Handle scrolling
+        if event.type == pygame.MOUSEWHEEL:
+            self.scroll_offset -= event.y * 30
+            self.scroll_offset = max(0, min(self.scroll_offset, self.max_scroll))
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                self.scroll_offset = max(0, self.scroll_offset - 30)
+            elif event.key == pygame.K_DOWN:
+                self.scroll_offset = min(self.max_scroll, self.scroll_offset + 30)
         return None
     
     def update(self, dt):
@@ -320,24 +342,37 @@ class HowToPlayScreen:
         title_rect = title.get_rect(center=(self.screen_width // 2, 60))
         screen.blit(title, title_rect)
         
+        # Create clipping area for scrollable content
+        content_area = pygame.Rect(0, 100, self.screen_width, self.screen_height - 200)
+        
         # Instructions cards
         card_width = min(700, self.screen_width - 100)
         card_x = (self.screen_width - card_width) // 2
-        y_offset = 120
+        y_offset = 120 - self.scroll_offset
         
         for section_title, items in self.instructions:
             # Section title
-            heading = self.heading_font.render(section_title, True, COLORS['secondary'])
-            screen.blit(heading, (card_x, y_offset))
+            if y_offset > 80 and y_offset < self.screen_height - 100:
+                heading = self.heading_font.render(section_title, True, COLORS['secondary'])
+                screen.blit(heading, (card_x, y_offset))
             y_offset += 35
             
             # Section items
             for item in items:
-                text = self.text_font.render(item, True, COLORS['text_light'])
-                screen.blit(text, (card_x + 20, y_offset))
+                if y_offset > 80 and y_offset < self.screen_height - 100:
+                    text = self.text_font.render(item, True, COLORS['text_light'])
+                    screen.blit(text, (card_x + 20, y_offset))
                 y_offset += 25
                 
-            y_offset += 20
+            y_offset += 15
+        
+        # Calculate max scroll
+        self.max_scroll = max(0, y_offset + self.scroll_offset - self.screen_height + 200)
+        
+        # Scroll indicator
+        if self.max_scroll > 0:
+            indicator = self.text_font.render("↑↓ Scroll for more", True, (120, 130, 150))
+            screen.blit(indicator, (self.screen_width // 2 - 60, self.screen_height - 120))
         
         # Back button
         self.back_button.draw(screen, self.button_font)

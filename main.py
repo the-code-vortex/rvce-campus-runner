@@ -1329,6 +1329,12 @@ class RVCECampusRunner:
         
         # Track if NPC is nearby for hint notification
         self.nearby_npc = None
+        
+        # Construction event system - random road blocks
+        self.construction_sites = []  # List of (x, y, timer) tuples
+        self.construction_duration = 45  # Seconds each construction lasts
+        self.construction_spawn_timer = 15  # Time until first spawn
+        self.construction_spawn_interval = (30, 60)  # Random interval between spawns
 
         
         # Initialize mini-map (position in bottom-left corner)
@@ -2281,6 +2287,39 @@ class RVCECampusRunner:
                                 self.ui_message_timer = 2.0
                                 if self.sound_manager:
                                     self.sound_manager.play('alert')
+                    
+                    # L key to ask Lab Assistant for help clearing construction
+                    elif event.key == pygame.K_l:
+                        if self.construction_sites:  # Only if there's active construction
+                            # Check if Lab Assistant is nearby
+                            lab_assistant_nearby = None
+                            for npc in self.npc_manager.npcs if self.npc_manager else []:
+                                if npc.npc_type == NPCType.LAB_ASSISTANT:
+                                    dx = self.player_pos[0] - npc.pos[0]
+                                    dy = self.player_pos[1] - npc.pos[1]
+                                    distance = (dx * dx + dy * dy) ** 0.5
+                                    if distance <= self.npc_hint_range:
+                                        lab_assistant_nearby = npc
+                                        break
+                            
+                            if lab_assistant_nearby:
+                                # Clear all construction sites
+                                for x, y, timer in self.construction_sites:
+                                    if 0 <= y < self.game_map.height and 0 <= x < self.game_map.width:
+                                        self.tile_map[y][x] = TileType.NORMAL
+                                        self.game_map.grid[y][x] = 0
+                                self.construction_sites = []
+                                self.score -= 5  # Deduct 5 points
+                                self.ui_message = "Lab Assistant cleared the construction! (-5 pts)"
+                                self.ui_message_timer = 3.0
+                                if self.sound_manager:
+                                    self.sound_manager.play('booster')
+                            else:
+                                self.ui_message = "Find a Lab Assistant (🧪) to help clear construction!"
+                                self.ui_message_timer = 2.0
+                        else:
+                            self.ui_message = "No construction to clear right now."
+                            self.ui_message_timer = 2.0
                 
                 elif self.state == GameState.PAUSED:
                     if event.key == pygame.K_p:
@@ -2431,7 +2470,77 @@ class RVCECampusRunner:
                 self.ui_message_timer = 0.5
             elif self.ui_message and "Press [H]" in str(self.ui_message) and not self.nearby_npc:
                 self.ui_message = None
+        
+        # Update construction events
+        self._update_construction_events(dt)
     
+    def _update_construction_events(self, dt):
+        """Handle construction site spawning and removal"""
+        # Update spawn timer
+        self.construction_spawn_timer -= dt
+        
+        if self.construction_spawn_timer <= 0:
+            # Spawn new construction site
+            self._spawn_construction_site()
+            # Reset timer with random interval
+            self.construction_spawn_timer = random.uniform(*self.construction_spawn_interval)
+        
+        # Update existing construction timers and remove expired ones
+        still_active = []
+        for site in self.construction_sites:
+            x, y, timer = site
+            timer -= dt
+            if timer > 0:
+                still_active.append((x, y, timer))
+            else:
+                # Remove construction - make tile walkable again
+                if 0 <= y < self.game_map.height and 0 <= x < self.game_map.width:
+                    self.tile_map[y][x] = TileType.NORMAL
+                    self.game_map.grid[y][x] = 0  # Mark as walkable
+                self.ui_message = "🚧 Construction cleared!"
+                self.ui_message_timer = 2.0
+        self.construction_sites = still_active
+    
+    def _spawn_construction_site(self):
+        """Spawn a new random construction site on a walkable path"""
+        # Find all walkable positions (not buildings, not player position)
+        walkable = []
+        for y in range(self.game_map.height):
+            for x in range(self.game_map.width):
+                if self.game_map.grid[y][x] == 0 and self.tile_map[y][x] == TileType.NORMAL:
+                    # Don't block building positions
+                    is_building = any(bpos == (x, y) for bpos in self.buildings.values())
+                    is_player = (x, y) == self.player_pos
+                    if not is_building and not is_player:
+                        walkable.append((x, y))
+        
+        if not walkable:
+            return
+        
+        # Pick 2-4 adjacent cells for the construction zone
+        center = random.choice(walkable)
+        cx, cy = center
+        positions = [(cx, cy)]
+        
+        for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+            if random.random() > 0.5:
+                nx, ny = cx + dx, cy + dy
+                if (nx, ny) in walkable and (nx, ny) not in positions:
+                    positions.append((nx, ny))
+                    if len(positions) >= 4:
+                        break
+        
+        # Create construction sites
+        for x, y in positions:
+            self.tile_map[y][x] = TileType.CONSTRUCTION
+            self.game_map.grid[y][x] = 1  # Mark as blocked
+            self.construction_sites.append((x, y, self.construction_duration))
+        
+        self.ui_message = f"🚧 Construction ahead! Route blocked"
+        self.ui_message_timer = 3.0
+        if self.sound_manager:
+            self.sound_manager.play('alert')
+
     def draw_gradient_background(self):
         for y in range(self.screen_height):
             t = y / self.screen_height
@@ -2535,15 +2644,30 @@ class RVCECampusRunner:
                         self.screen.blit(texture, rect.topleft)
                     elif tile_type in TILE_PROPERTIES:
                         props = TILE_PROPERTIES[tile_type]
-                        pygame.draw.rect(self.screen, (70, 75, 90), rect)
-                        # Road center line (subtle)
-                        pygame.draw.line(
-                            self.screen,
-                            (100, 105, 130),
-                            (rect.centerx, rect.y + 6),
-                            (rect.centerx, rect.bottom - 6),
-                            1
-                        )
+                        
+                        # Special rendering for construction sites
+                        if tile_type == TileType.CONSTRUCTION:
+                            # Orange background
+                            pygame.draw.rect(self.screen, (200, 120, 50), rect)
+                            # Red X to indicate blocked
+                            pygame.draw.line(self.screen, (200, 30, 30), 
+                                           (rect.x + 5, rect.y + 5), 
+                                           (rect.x + cell_size - 5, rect.y + cell_size - 5), 4)
+                            pygame.draw.line(self.screen, (200, 30, 30), 
+                                           (rect.x + cell_size - 5, rect.y + 5), 
+                                           (rect.x + 5, rect.y + cell_size - 5), 4)
+                            # Border
+                            pygame.draw.rect(self.screen, (150, 80, 30), rect, 2)
+                        else:
+                            pygame.draw.rect(self.screen, (70, 75, 90), rect)
+                            # Road center line (subtle)
+                            pygame.draw.line(
+                                self.screen,
+                                (100, 105, 130),
+                                (rect.centerx, rect.y + 6),
+                                (rect.centerx, rect.bottom - 6),
+                                1
+                            )
                         # Add tile indicators
                         if tile_type == TileType.ICE:
                             pygame.draw.line(self.screen, (200, 240, 255), 
