@@ -178,13 +178,11 @@ class MainMenuScreen:
         self.buttons = {
             'start': Button(button_x, button_start_y, button_width, button_height, 
                            "🎮  Start Game", COLORS['success']),
-            'difficulty': Button(button_x, button_start_y + button_spacing, button_width, button_height,
-                                "⚙️  Difficulty", COLORS['primary']),
-            'how_to_play': Button(button_x, button_start_y + button_spacing * 2, button_width, button_height,
+            'how_to_play': Button(button_x, button_start_y + button_spacing, button_width, button_height,
                                  "📖  How To Play", COLORS['secondary']),
-            'high_scores': Button(button_x, button_start_y + button_spacing * 3, button_width, button_height,
+            'high_scores': Button(button_x, button_start_y + button_spacing * 2, button_width, button_height,
                                  "🏆  High Scores", COLORS['gold']),
-            'exit': Button(button_x, button_start_y + button_spacing * 4, button_width, button_height,
+            'exit': Button(button_x, button_start_y + button_spacing * 3, button_width, button_height,
                           "🚪  Exit", COLORS['danger']),
         }
         
@@ -273,27 +271,32 @@ class HowToPlayScreen:
         
         self.instructions = [
             ("🎯 OBJECTIVE", [
-                "Complete academic tasks by navigating to different campus buildings.",
-                "Earn points by completing tasks before time runs out!",
+                "Complete tasks by navigating to assigned campus buildings.",
+                "Earn points and achieve the highest Runner Title!",
             ]),
             ("⌨️ MOVEMENT", [
                 "↑ ↓ ← → (Arrow Keys) - Move your character",
                 "U - Undo last move",
             ]),
-            ("🔍 PATHFINDING", [
-                "B - Show path using BFS (Breadth-First Search) - Green",
-                "A - Show path using A* Algorithm - Blue",
-                "C - Clear the current path",
+            ("🔍 PATHFINDING & HINTS", [
+                "B - Show BFS path (Green)",
+                "C - Clear path",
+                "H - Ask NPC for hint (must be near Prof/Student)",
             ]),
-            ("🎮 GAME CONTROLS", [
-                "P - Pause/Resume game",
-                "R - Restart game",
-                "ESC - Exit to menu",
+            ("👨‍🏫 NPCs", [
+                "Professors & Students roam the campus",
+                "Get within 5 nodes to ask for hints (-15 pts)",
             ]),
-            ("💡 TIPS", [
-                "Follow the glowing yellow building - that's your target!",
-                "A* algorithm is usually more efficient than BFS!",
-                "Complete tasks quickly for bonus time points!",
+            ("⭐ SCORING", [
+                "+50 pts - Each building visited",
+                "+20 pts - No pathfinding key (B) used",
+                "+30 pts - Optimal path (requires no B)",
+                "-15 pts - Asking NPC for hint",
+                "Time Bonus - 2× remaining seconds at victory",
+            ]),
+            ("🏆 RUNNER TITLES", [
+                "Fresher: 0-249 pts | Sophomore: 250-599 pts",
+                "Senior: 600-799 pts | Super Senior: 800+ pts",
             ]),
         ]
         
@@ -341,7 +344,7 @@ class HowToPlayScreen:
 
 
 class HighScoresScreen:
-    """Display top 10 high scores"""
+    """Display top 10 high scores with Runner Titles"""
     
     def __init__(self, screen_width, screen_height, score_manager):
         self.screen_width = screen_width
@@ -355,6 +358,18 @@ class HighScoresScreen:
         
         self.back_button = Button((screen_width - 200) // 2, screen_height - 80,
                                   200, 50, "← Back to Menu", COLORS['primary'])
+    
+    @staticmethod
+    def get_runner_title(score):
+        """Get runner title based on score"""
+        if score >= 800:
+            return "Super Senior", COLORS['gold']
+        elif score >= 600:
+            return "Senior", COLORS['success']
+        elif score >= 250:
+            return "Sophomore", COLORS['primary']
+        else:
+            return "Fresher", COLORS['text_muted']
         
     def handle_event(self, event):
         if self.back_button.is_clicked(event):
@@ -387,8 +402,8 @@ class HighScoresScreen:
             no_scores_rect = no_scores.get_rect(center=(self.screen_width // 2, self.screen_height // 2))
             screen.blit(no_scores, no_scores_rect)
         else:
-            # Header
-            header = self.score_font.render("RANK    NAME           SCORE    DIFFICULTY    DATE", 
+            # Header - replaced DIFFICULTY with TITLE
+            header = self.score_font.render("RANK    NAME           SCORE    TITLE           DATE", 
                                            True, COLORS['text_muted'])
             screen.blit(header, (card_x, y_offset))
             y_offset += 40
@@ -424,10 +439,10 @@ class HighScoresScreen:
                 score_text = self.score_font.render(str(entry['score']).ljust(8), True, COLORS['success'])
                 screen.blit(score_text, (card_x + 230, y_offset + 3))
                 
-                # Difficulty
-                diff_text = self.score_font.render(entry.get('difficulty', 'Normal').ljust(10), 
-                                                   True, COLORS['secondary'])
-                screen.blit(diff_text, (card_x + 340, y_offset + 3))
+                # Runner Title (based on score)
+                title_name, title_color = self.get_runner_title(entry['score'])
+                title_text = self.score_font.render(title_name.ljust(12), True, title_color)
+                screen.blit(title_text, (card_x + 330, y_offset + 3))
                 
                 # Date
                 date_text = self.score_font.render(entry['date'], True, COLORS['text_muted'])

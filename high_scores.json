@@ -1,6 +1,12 @@
 {
   "scores": [
     {
+      "name": "ANIKA",
+      "score": 1039,
+      "difficulty": "Normal",
+      "date": "2026-01-18"
+    },
+    {
       "name": "AK",
       "score": 794,
       "difficulty": "Normal",

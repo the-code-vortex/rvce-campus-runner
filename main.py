@@ -208,6 +208,660 @@ class AssetGenerator:
         pygame.draw.circle(surface, color, (size, size), size)
         return surface
 
+
+class BuildingIconGenerator:
+    """
+    Generates custom building icons with geometric shapes and labels.
+    Each building has a unique icon matching its semantic purpose.
+    """
+    
+    # Category colors
+    COLORS = {
+        'admin': (70, 130, 180),      # Steel blue
+        'academic': (100, 149, 237),   # Cornflower blue
+        'hostel': (147, 112, 219),     # Medium purple
+        'food': (255, 165, 0),         # Orange
+        'sports': (50, 205, 50),       # Lime green
+        'services': (220, 20, 60),     # Crimson
+        'innovation': (255, 215, 0),   # Gold
+        'science': (0, 206, 209),      # Dark turquoise
+        'entry': (34, 139, 34),        # Forest green
+    }
+    
+    @staticmethod
+    def _create_base_surface(size=64):
+        """Create a base transparent surface"""
+        return pygame.Surface((size, size), pygame.SRCALPHA)
+    
+    @staticmethod
+    def _add_label(surface, label, size=64):
+        """Add building name label with black background"""
+        font = pygame.font.SysFont('Segoe UI', 9, bold=True)
+        text = font.render(label, True, (255, 255, 255))
+        text_rect = text.get_rect(centerx=size//2, bottom=size-2)
+        
+        # Black background for label
+        bg_rect = text_rect.inflate(4, 2)
+        pygame.draw.rect(surface, (0, 0, 0), bg_rect)
+        surface.blit(text, text_rect)
+        return surface
+    
+    @classmethod
+    def main_entrance(cls, size=64):
+        """Gate / archway / pillars"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['entry']
+        cx, cy = size//2, size//2 - 8
+        
+        # Two pillars
+        pygame.draw.rect(s, color, (cx-20, cy-10, 8, 30))
+        pygame.draw.rect(s, color, (cx+12, cy-10, 8, 30))
+        
+        # Arch on top
+        pygame.draw.arc(s, color, (cx-20, cy-20, 40, 30), 3.14, 0, 4)
+        
+        # Gate bars
+        for i in range(-12, 13, 6):
+            pygame.draw.line(s, (200, 200, 200), (cx+i, cy), (cx+i, cy+15), 1)
+        
+        return cls._add_label(s, "GATE", size)
+    
+    @classmethod
+    def kotak_mahindra_bank(cls, size=64):
+        """Bank building with currency symbol"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['services']
+        cx, cy = size//2, size//2 - 8
+        
+        # Building shape
+        pygame.draw.rect(s, color, (cx-18, cy-8, 36, 28), border_radius=3)
+        
+        # Pillars
+        for i in [-12, 0, 12]:
+            pygame.draw.rect(s, (255, 255, 255), (cx+i-2, cy-5, 4, 22))
+        
+        # Roof
+        pygame.draw.polygon(s, (180, 20, 50), [(cx-20, cy-8), (cx, cy-18), (cx+20, cy-8)])
+        
+        # Rupee symbol
+        font = pygame.font.SysFont('Segoe UI', 14, bold=True)
+        rupee = font.render("₹", True, (255, 215, 0))
+        s.blit(rupee, (cx-5, cy+2))
+        
+        return cls._add_label(s, "BANK", size)
+    
+    @classmethod
+    def health_centre(cls, size=64):
+        """Medical cross"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['services']
+        cx, cy = size//2, size//2 - 8
+        
+        # White background circle
+        pygame.draw.circle(s, (255, 255, 255), (cx, cy), 18)
+        
+        # Red cross
+        pygame.draw.rect(s, color, (cx-4, cy-14, 8, 28))
+        pygame.draw.rect(s, color, (cx-14, cy-4, 28, 8))
+        
+        return cls._add_label(s, "HEALTH", size)
+    
+    @classmethod
+    def admin_block(cls, size=64):
+        """Clipboard / office building"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['admin']
+        cx, cy = size//2, size//2 - 8
+        
+        # Building
+        pygame.draw.rect(s, color, (cx-16, cy-12, 32, 32), border_radius=2)
+        
+        # Windows grid
+        for row in range(3):
+            for col in range(3):
+                pygame.draw.rect(s, (200, 220, 255), (cx-12+col*10, cy-8+row*8, 6, 5))
+        
+        # Door
+        pygame.draw.rect(s, (50, 80, 120), (cx-4, cy+12, 8, 8))
+        
+        return cls._add_label(s, "ADMIN", size)
+    
+    @classmethod
+    def iem_auditorium(cls, size=64):
+        """Stage with curtain"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['admin']
+        cx, cy = size//2, size//2 - 8
+        
+        # Stage base
+        pygame.draw.rect(s, (100, 80, 60), (cx-20, cy+8, 40, 10))
+        
+        # Curtains
+        pygame.draw.polygon(s, (180, 50, 50), [(cx-20, cy-15), (cx-20, cy+8), (cx-8, cy+8), (cx-14, cy-15)])
+        pygame.draw.polygon(s, (180, 50, 50), [(cx+20, cy-15), (cx+20, cy+8), (cx+8, cy+8), (cx+14, cy-15)])
+        
+        # Stage light
+        pygame.draw.circle(s, (255, 255, 200), (cx, cy-10), 6)
+        
+        return cls._add_label(s, "IEM AUD", size)
+    
+    @classmethod
+    def library(cls, size=64):
+        """Books / bookshelf"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['admin']
+        cx, cy = size//2, size//2 - 8
+        
+        # Bookshelf
+        pygame.draw.rect(s, (139, 90, 43), (cx-18, cy-12, 36, 30))
+        
+        # Books - different colors
+        book_colors = [(200, 50, 50), (50, 150, 50), (50, 50, 200), (200, 200, 50), (200, 100, 150)]
+        for i, bc in enumerate(book_colors):
+            pygame.draw.rect(s, bc, (cx-14+i*6, cy-10, 5, 24))
+        
+        return cls._add_label(s, "LIBRARY", size)
+    
+    @classmethod
+    def temple(cls, size=64):
+        """Shrine with dome and bell"""
+        s = cls._create_base_surface(size)
+        color = (255, 165, 0)  # Orange/saffron
+        cx, cy = size//2, size//2 - 8
+        
+        # Base
+        pygame.draw.rect(s, (200, 200, 200), (cx-16, cy+5, 32, 12))
+        
+        # Dome
+        pygame.draw.arc(s, color, (cx-14, cy-15, 28, 25), 3.14, 0, 3)
+        pygame.draw.rect(s, color, (cx-14, cy-3, 28, 8))
+        
+        # Spire
+        pygame.draw.polygon(s, color, [(cx, cy-20), (cx-4, cy-12), (cx+4, cy-12)])
+        
+        # Bell
+        pygame.draw.circle(s, (218, 165, 32), (cx, cy+2), 4)
+        
+        return cls._add_label(s, "TEMPLE", size)
+    
+    @classmethod
+    def mechanical_dept(cls, size=64):
+        """Gear / cogwheel"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['academic']
+        cx, cy = size//2, size//2 - 8
+        
+        # Main gear
+        pygame.draw.circle(s, color, (cx, cy), 16, 4)
+        pygame.draw.circle(s, color, (cx, cy), 6)
+        
+        # Gear teeth
+        for angle in range(0, 360, 45):
+            rad = math.radians(angle)
+            x1, y1 = cx + 14 * math.cos(rad), cy + 14 * math.sin(rad)
+            x2, y2 = cx + 20 * math.cos(rad), cy + 20 * math.sin(rad)
+            pygame.draw.line(s, color, (x1, y1), (x2, y2), 4)
+        
+        return cls._add_label(s, "MECH", size)
+    
+    @classmethod
+    def civil_dept(cls, size=64):
+        """Bridge / column"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['academic']
+        cx, cy = size//2, size//2 - 8
+        
+        # Bridge arch
+        pygame.draw.arc(s, color, (cx-20, cy-5, 40, 20), 3.14, 0, 4)
+        
+        # Road deck
+        pygame.draw.rect(s, (100, 100, 100), (cx-22, cy+5, 44, 6))
+        
+        # Pillars
+        pygame.draw.rect(s, color, (cx-18, cy+5, 6, 12))
+        pygame.draw.rect(s, color, (cx+12, cy+5, 6, 12))
+        
+        return cls._add_label(s, "CIVIL", size)
+    
+    @classmethod
+    def chem_engg_physics_dept(cls, size=64):
+        """Beaker + atom"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['science']
+        cx, cy = size//2, size//2 - 8
+        
+        # Beaker
+        pygame.draw.polygon(s, (200, 230, 255), [(cx-8, cy-12), (cx+8, cy-12), (cx+12, cy+12), (cx-12, cy+12)])
+        pygame.draw.rect(s, color, (cx-12, cy+4, 24, 8))  # Liquid
+        
+        # Atom orbits (small)
+        pygame.draw.ellipse(s, (255, 100, 100), (cx+6, cy-8, 16, 10), 1)
+        pygame.draw.circle(s, (255, 100, 100), (cx+14, cy-3), 3)
+        
+        return cls._add_label(s, "CHEM-PHY", size)
+    
+    @classmethod
+    def eee_dept(cls, size=64):
+        """Lightning bolt"""
+        s = cls._create_base_surface(size)
+        color = (255, 255, 0)  # Yellow
+        cx, cy = size//2, size//2 - 8
+        
+        # Lightning bolt
+        points = [
+            (cx+5, cy-18), (cx-5, cy-2), (cx+2, cy-2),
+            (cx-8, cy+18), (cx+2, cy+2), (cx-5, cy+2)
+        ]
+        pygame.draw.polygon(s, color, points)
+        pygame.draw.polygon(s, (255, 200, 0), points, 2)
+        
+        return cls._add_label(s, "EEE", size)
+    
+    @classmethod
+    def ece_dept(cls, size=64):
+        """Circuit / waveform"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['academic']
+        cx, cy = size//2, size//2 - 8
+        
+        # Waveform
+        points = []
+        for i in range(40):
+            x = cx - 18 + i
+            y = cy + int(8 * math.sin(i * 0.4))
+            points.append((x, y))
+        pygame.draw.lines(s, (0, 255, 0), False, points, 2)
+        
+        # IC chip
+        pygame.draw.rect(s, (50, 50, 50), (cx-10, cy+8, 20, 10))
+        for i in range(4):
+            pygame.draw.line(s, (200, 200, 200), (cx-8+i*5, cy+8), (cx-8+i*5, cy+4), 1)
+        
+        return cls._add_label(s, "ECE", size)
+    
+    @classmethod
+    def cse_dept(cls, size=64):
+        """Computer monitor / code brackets"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['academic']
+        cx, cy = size//2, size//2 - 8
+        
+        # Monitor
+        pygame.draw.rect(s, (60, 60, 60), (cx-16, cy-12, 32, 22), border_radius=2)
+        pygame.draw.rect(s, (30, 30, 50), (cx-14, cy-10, 28, 18))
+        
+        # Code brackets < / >
+        font = pygame.font.SysFont('Consolas', 12, bold=True)
+        code = font.render("</>", True, (0, 255, 0))
+        s.blit(code, (cx-10, cy-8))
+        
+        # Stand
+        pygame.draw.rect(s, (80, 80, 80), (cx-4, cy+10, 8, 6))
+        
+        return cls._add_label(s, "CSE", size)
+    
+    @classmethod
+    def telecom_dept(cls, size=64):
+        """Signal tower with radio waves"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['academic']
+        cx, cy = size//2, size//2 - 8
+        
+        # Tower
+        pygame.draw.polygon(s, (150, 150, 150), [(cx, cy-15), (cx-10, cy+15), (cx+10, cy+15)])
+        pygame.draw.line(s, (100, 100, 100), (cx-7, cy), (cx+7, cy), 2)
+        pygame.draw.line(s, (100, 100, 100), (cx-5, cy+8), (cx+5, cy+8), 2)
+        
+        # Radio waves
+        for i in range(3):
+            pygame.draw.arc(s, (100, 200, 255), (cx-8-i*6, cy-15-i*4, 16+i*12, 12+i*4), 0.5, 2.6, 2)
+        
+        return cls._add_label(s, "TELECOM", size)
+    
+    @classmethod
+    def mathematics_dept(cls, size=64):
+        """Pi symbol / geometric pattern"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['academic']
+        cx, cy = size//2, size//2 - 8
+        
+        # Pi symbol
+        font = pygame.font.SysFont('Segoe UI', 28, bold=True)
+        pi = font.render("π", True, color)
+        pi_rect = pi.get_rect(center=(cx, cy-2))
+        s.blit(pi, pi_rect)
+        
+        # Small geometric shapes
+        pygame.draw.polygon(s, (255, 200, 100), [(cx-18, cy+10), (cx-10, cy+2), (cx-2, cy+10)], 2)
+        pygame.draw.circle(s, (100, 200, 255), (cx+12, cy+6), 6, 2)
+        
+        return cls._add_label(s, "MATH", size)
+    
+    @classmethod
+    def biotech_quadrangle(cls, size=64):
+        """DNA helix"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['science']
+        cx, cy = size//2, size//2 - 8
+        
+        # DNA helix strands
+        for i in range(20):
+            y = cy - 15 + i * 1.5
+            x_offset = 8 * math.sin(i * 0.5)
+            pygame.draw.circle(s, (0, 200, 100), (int(cx + x_offset), int(y)), 3)
+            pygame.draw.circle(s, (100, 150, 255), (int(cx - x_offset), int(y)), 3)
+            if i % 3 == 0:
+                pygame.draw.line(s, (200, 200, 200), (int(cx + x_offset), int(y)), (int(cx - x_offset), int(y)), 1)
+        
+        return cls._add_label(s, "BIOTECH", size)
+    
+    @classmethod
+    def green_house(cls, size=64):
+        """Plant under glass"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['science']
+        cx, cy = size//2, size//2 - 8
+        
+        # Glass dome
+        pygame.draw.arc(s, (200, 255, 200), (cx-18, cy-12, 36, 30), 3.14, 0, 2)
+        pygame.draw.line(s, (200, 255, 200), (cx-18, cy+3), (cx+18, cy+3), 2)
+        
+        # Plant
+        pygame.draw.line(s, (100, 200, 100), (cx, cy+3), (cx, cy-5), 3)  # Stem
+        pygame.draw.ellipse(s, (50, 180, 50), (cx-8, cy-12, 8, 10))  # Leaf
+        pygame.draw.ellipse(s, (50, 180, 50), (cx, cy-12, 8, 10))    # Leaf
+        pygame.draw.ellipse(s, (50, 200, 50), (cx-4, cy-16, 8, 8))   # Top leaf
+        
+        # Pot
+        pygame.draw.polygon(s, (180, 100, 50), [(cx-6, cy+3), (cx+6, cy+3), (cx+4, cy+10), (cx-4, cy+10)])
+        
+        return cls._add_label(s, "GREEN", size)
+    
+    @classmethod
+    def design_thinking_huddle(cls, size=64):
+        """Light bulb with brainstorming nodes"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['innovation']
+        cx, cy = size//2, size//2 - 8
+        
+        # Light bulb
+        pygame.draw.circle(s, color, (cx, cy-4), 12)
+        pygame.draw.rect(s, (200, 200, 200), (cx-5, cy+8, 10, 8), border_radius=2)
+        
+        # Rays
+        for angle in range(0, 360, 45):
+            if angle != 180:  # Skip bottom
+                rad = math.radians(angle)
+                x1, y1 = cx + 14 * math.cos(rad), cy - 4 + 14 * math.sin(rad)
+                x2, y2 = cx + 20 * math.cos(rad), cy - 4 + 20 * math.sin(rad)
+                pygame.draw.line(s, color, (x1, y1), (x2, y2), 2)
+        
+        return cls._add_label(s, "DTH", size)
+    
+    @classmethod
+    def kriyakalpa(cls, size=64):
+        """Innovation hub - tools + bulb"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['innovation']
+        cx, cy = size//2, size//2 - 8
+        
+        # Gear
+        pygame.draw.circle(s, (150, 150, 150), (cx-8, cy+4), 10, 2)
+        pygame.draw.circle(s, (150, 150, 150), (cx-8, cy+4), 4)
+        
+        # Bulb
+        pygame.draw.circle(s, color, (cx+8, cy-4), 8)
+        pygame.draw.rect(s, (200, 200, 200), (cx+5, cy+4, 6, 5), border_radius=1)
+        
+        # Sparkles
+        pygame.draw.line(s, (255, 255, 255), (cx+8, cy-14), (cx+8, cy-18), 2)
+        pygame.draw.line(s, (255, 255, 255), (cx+16, cy-8), (cx+20, cy-8), 2)
+        
+        return cls._add_label(s, "KRIYA", size)
+    
+    @classmethod
+    def ise_aerospace_dept(cls, size=64):
+        """Rocket / satellite"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['science']
+        cx, cy = size//2, size//2 - 8
+        
+        # Rocket body
+        pygame.draw.ellipse(s, (200, 200, 220), (cx-6, cy-18, 12, 30))
+        
+        # Nose cone
+        pygame.draw.polygon(s, (255, 100, 100), [(cx, cy-22), (cx-5, cy-14), (cx+5, cy-14)])
+        
+        # Fins
+        pygame.draw.polygon(s, (255, 100, 100), [(cx-6, cy+6), (cx-12, cy+14), (cx-4, cy+10)])
+        pygame.draw.polygon(s, (255, 100, 100), [(cx+6, cy+6), (cx+12, cy+14), (cx+4, cy+10)])
+        
+        # Window
+        pygame.draw.circle(s, (100, 200, 255), (cx, cy-6), 4)
+        
+        # Flame
+        pygame.draw.polygon(s, (255, 200, 0), [(cx-4, cy+12), (cx, cy+20), (cx+4, cy+12)])
+        
+        return cls._add_label(s, "ISE-AERO", size)
+    
+    @classmethod
+    def thode_aur_canteen(cls, size=64):
+        """Plate with spoon"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['food']
+        cx, cy = size//2, size//2 - 8
+        
+        # Plate
+        pygame.draw.ellipse(s, (240, 240, 240), (cx-16, cy-6, 32, 18))
+        pygame.draw.ellipse(s, (220, 220, 220), (cx-12, cy-2, 24, 12))
+        
+        # Food items
+        pygame.draw.circle(s, (200, 150, 100), (cx-4, cy+2), 5)
+        pygame.draw.circle(s, (100, 180, 100), (cx+6, cy+2), 4)
+        
+        # Spoon
+        pygame.draw.ellipse(s, (180, 180, 180), (cx+14, cy-8, 6, 10))
+        pygame.draw.rect(s, (180, 180, 180), (cx+15, cy, 3, 12))
+        
+        return cls._add_label(s, "THODE", size)
+    
+    @classmethod
+    def mingos_canteen(cls, size=64):
+        """Coffee cup"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['food']
+        cx, cy = size//2, size//2 - 8
+        
+        # Cup
+        pygame.draw.rect(s, (255, 255, 255), (cx-10, cy-6, 20, 22), border_radius=3)
+        pygame.draw.arc(s, (200, 200, 200), (cx+8, cy, 12, 14), -1.5, 1.5, 3)
+        
+        # Coffee fill
+        pygame.draw.rect(s, (139, 90, 43), (cx-8, cy-2, 16, 16), border_radius=2)
+        
+        # Steam
+        for i in range(3):
+            pygame.draw.arc(s, (200, 200, 200), (cx-6+i*6, cy-16, 8, 10), 0.5, 2.6, 2)
+        
+        return cls._add_label(s, "MINGOS", size)
+    
+    @classmethod
+    def canteen(cls, size=64):
+        """General canteen - plate + utensils"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['food']
+        cx, cy = size//2, size//2 - 8
+        
+        # Plate
+        pygame.draw.ellipse(s, color, (cx-14, cy-4, 28, 16))
+        pygame.draw.ellipse(s, (255, 200, 150), (cx-10, cy, 20, 10))
+        
+        # Fork
+        pygame.draw.rect(s, (200, 200, 200), (cx-18, cy-10, 2, 16))
+        for i in range(3):
+            pygame.draw.rect(s, (200, 200, 200), (cx-20+i*2, cy-14, 2, 6))
+        
+        # Knife
+        pygame.draw.rect(s, (200, 200, 200), (cx+16, cy-10, 2, 16))
+        pygame.draw.polygon(s, (200, 200, 200), [(cx+16, cy-14), (cx+18, cy-14), (cx+17, cy-10)])
+        
+        return cls._add_label(s, "CANTEEN", size)
+    
+    @classmethod
+    def football_cricket_ground(cls, size=64):
+        """Ball / field outline"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['sports']
+        cx, cy = size//2, size//2 - 8
+        
+        # Field
+        pygame.draw.ellipse(s, (80, 160, 80), (cx-20, cy-10, 40, 24))
+        pygame.draw.ellipse(s, (100, 180, 100), (cx-20, cy-10, 40, 24), 2)
+        
+        # Cricket stumps
+        for i in range(-4, 5, 4):
+            pygame.draw.rect(s, (200, 180, 150), (cx+i-1, cy-8, 2, 12))
+        
+        # Football
+        pygame.draw.circle(s, (255, 255, 255), (cx-10, cy+4), 6)
+        pygame.draw.circle(s, (50, 50, 50), (cx-10, cy+4), 6, 1)
+        
+        return cls._add_label(s, "SPORTS", size)
+    
+    @classmethod
+    def pe_sports_dept(cls, size=64):
+        """Dumbbell"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['sports']
+        cx, cy = size//2, size//2 - 8
+        
+        # Dumbbell bar
+        pygame.draw.rect(s, (150, 150, 150), (cx-18, cy-2, 36, 4))
+        
+        # Weights
+        pygame.draw.rect(s, (80, 80, 80), (cx-20, cy-10, 8, 20), border_radius=2)
+        pygame.draw.rect(s, (80, 80, 80), (cx+12, cy-10, 8, 20), border_radius=2)
+        pygame.draw.rect(s, (60, 60, 60), (cx-24, cy-8, 6, 16), border_radius=2)
+        pygame.draw.rect(s, (60, 60, 60), (cx+18, cy-8, 6, 16), border_radius=2)
+        
+        return cls._add_label(s, "PE SPORTS", size)
+    
+    @classmethod
+    def krishna_hostel(cls, size=64):
+        """Bed / dorm building"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['hostel']
+        cx, cy = size//2, size//2 - 8
+        
+        # Building
+        pygame.draw.rect(s, color, (cx-16, cy-10, 32, 28), border_radius=2)
+        
+        # Windows (arranged like rooms)
+        for row in range(2):
+            for col in range(3):
+                pygame.draw.rect(s, (255, 255, 200), (cx-12+col*10, cy-6+row*12, 6, 8))
+        
+        # Door
+        pygame.draw.rect(s, (100, 70, 150), (cx-3, cy+10, 6, 8))
+        
+        return cls._add_label(s, "KRISHNA", size)
+    
+    @classmethod
+    def cauvery_boys_hostel(cls, size=64):
+        """Bunk beds / residence block"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['hostel']
+        cx, cy = size//2, size//2 - 8
+        
+        # Building - slightly different style
+        pygame.draw.rect(s, color, (cx-18, cy-12, 36, 30), border_radius=2)
+        
+        # Bunk bed icon in center
+        pygame.draw.rect(s, (200, 180, 220), (cx-8, cy-8, 16, 4))   # Top bunk
+        pygame.draw.rect(s, (200, 180, 220), (cx-8, cy+4, 16, 4))   # Bottom bunk
+        pygame.draw.rect(s, (150, 130, 180), (cx-10, cy-8, 2, 16))  # Left post
+        pygame.draw.rect(s, (150, 130, 180), (cx+8, cy-8, 2, 16))   # Right post
+        
+        return cls._add_label(s, "CAUVERY", size)
+    
+    @classmethod
+    def rv_university(cls, size=64):
+        """Graduation cap / university building"""
+        s = cls._create_base_surface(size)
+        color = cls.COLORS['admin']
+        cx, cy = size//2, size//2 - 8
+        
+        # Building with columns
+        pygame.draw.rect(s, (200, 200, 200), (cx-16, cy-4, 32, 22))
+        
+        # Columns
+        for i in [-10, 0, 10]:
+            pygame.draw.rect(s, (180, 180, 180), (cx+i-2, cy-2, 4, 18))
+        
+        # Roof/pediment
+        pygame.draw.polygon(s, color, [(cx-18, cy-4), (cx, cy-16), (cx+18, cy-4)])
+        
+        # Graduation cap on top
+        pygame.draw.rect(s, (50, 50, 50), (cx-8, cy-20, 16, 4))
+        pygame.draw.polygon(s, (50, 50, 50), [(cx, cy-24), (cx-10, cy-20), (cx+10, cy-20)])
+        
+        return cls._add_label(s, "RV UNIV", size)
+    
+    @classmethod
+    def get_icon(cls, building_name, size=64):
+        """Get icon for a specific building by name"""
+        # Map building names to icon methods
+        icon_map = {
+            "Main Entrance": cls.main_entrance,
+            "Kotak Mahindra Bank": cls.kotak_mahindra_bank,
+            "Health Centre": cls.health_centre,
+            "Admin Block": cls.admin_block,
+            "IEM Auditorium": cls.iem_auditorium,
+            "Library": cls.library,
+            "Temple": cls.temple,
+            "Mechanical Dept": cls.mechanical_dept,
+            "Civil Dept": cls.civil_dept,
+            "Chem Engg & Physics Dept": cls.chem_engg_physics_dept,
+            "EEE Dept": cls.eee_dept,
+            "ECE Dept": cls.ece_dept,
+            "CSE Dept": cls.cse_dept,
+            "Telecom Dept": cls.telecom_dept,
+            "Mathematics Dept": cls.mathematics_dept,
+            "Biotech Quadrangle": cls.biotech_quadrangle,
+            "Green House": cls.green_house,
+            "Design Thinking Huddle": cls.design_thinking_huddle,
+            "Kriyakalpa": cls.kriyakalpa,
+            "ISE & Aerospace Dept": cls.ise_aerospace_dept,
+            "Thode Aur Canteen": cls.thode_aur_canteen,
+            "Mingos Canteen": cls.mingos_canteen,
+            "Canteen": cls.canteen,
+            "Football & Cricket Ground": cls.football_cricket_ground,
+            "PE & Sports Dept": cls.pe_sports_dept,
+            "Krishna Hostel": cls.krishna_hostel,
+            "Cauvery Boys Hostel": cls.cauvery_boys_hostel,
+            "RV University": cls.rv_university,
+        }
+        
+        if building_name in icon_map:
+            return icon_map[building_name](size)
+        else:
+            # Default icon
+            return cls._create_default_icon(building_name, size)
+    
+    @classmethod
+    def _create_default_icon(cls, name, size=64):
+        """Create a default icon for unknown buildings"""
+        s = cls._create_base_surface(size)
+        cx, cy = size//2, size//2 - 8
+        
+        # Generic building
+        pygame.draw.rect(s, (100, 100, 100), (cx-14, cy-10, 28, 26), border_radius=2)
+        pygame.draw.rect(s, (150, 150, 200), (cx-10, cy-6, 20, 18))
+        
+        # Short name
+        short_name = name[:6] if len(name) > 6 else name
+        return cls._add_label(s, short_name.upper(), size)
+
 # Data Structure 1: 2D Array for RVCE campus grid
 class RVCEGameMap:
     def __init__(self, width, height):
@@ -441,7 +1095,7 @@ class RVCECampusRunner:
                 'npc_alert_radius': 2
             },
             'normal': {
-                'time': 300,
+                'time': 180,
                 'tasks': 7,
                 'name': 'Normal',
                 'hint_cost': 15,
@@ -449,7 +1103,7 @@ class RVCECampusRunner:
                 'npc_alert_radius': 3
             },
             'hard': {
-                'time': 180,
+                'time': 100,
                 'tasks': 7,
                 'name': 'Hard',
                 'hint_cost': 25,
@@ -501,21 +1155,23 @@ class RVCECampusRunner:
         
         # Hint system
         self.hint_used = False  # Track if hint was used for current task
-        self.hint_cost = self.difficulty_settings[self.difficulty]['hint_cost']
+        # Hint cost is fixed at 15 points regardless of difficulty
+        self.hint_cost = 15
         self.show_hint = False  # Whether hint is currently shown
         
         # Star shimmer effect (when gaining points)
         self.star_shimmer = 0  # Shimmer intensity (0-1, decays over time)
         self.last_score = 0  # To detect score changes
         
-        # Level progression system
-        self.current_level = 1
+        # Level progression system (Runner Titles)
+        self.current_level = 0  # Start as Fresher
         self.level_thresholds = {
-            1: 0,      # Level 1: start
-            2: 200,    # Level 2: need 200 points
-            3: 500     # Level 3: need 500 points
+            0: 0,      # Fresher: 0-249 points
+            1: 250,    # Sophomore: 250-599 points
+            2: 600,    # Senior: 600-799 points
+            3: 800     # Super Senior: 800+ points
         }
-        self.level_names = {1: "Fresher", 2: "Junior", 3: "Senior"}
+        self.level_names = {0: "Fresher", 1: "Sophomore", 2: "Senior", 3: "Super Senior"}
         
         # Pathfinding usage tracking (for independent discovery bonus)
         self.used_pathfinding = False  # Did player use B/A keys for current task?
@@ -558,31 +1214,20 @@ class RVCECampusRunner:
         """Generate all visual assets programmatically"""
         print("Generating game assets...")
         
-        # Building icons
+        # Building icons - using new custom BuildingIconGenerator
         self.building_icons = {
-        "CSE Ground": AssetGenerator.create_building_icon("default"),
-        "Civil Dept":  AssetGenerator.create_building_icon("default"),
-        "Admin Block": AssetGenerator.create_building_icon("admin"),
-        "DTL Innovation Hub": AssetGenerator.create_building_icon("innovation"),
-        "Mechanical Dept": AssetGenerator.create_building_icon("mechanical"),
-        "BT Quadrangle": AssetGenerator.create_building_icon("biotech"),
-        "AI-ML & MCA Dept": AssetGenerator.create_building_icon("ai"),
-        "BT & EIE Dept": AssetGenerator.create_building_icon("electronics"),
-        "IEM Dept": AssetGenerator.create_building_icon("management"),
-        "Central Maintenance Office": AssetGenerator.create_building_icon("default"),
-        "EEE Dept": AssetGenerator.create_building_icon("power"),
-        "CSE Dept": AssetGenerator.create_building_icon("code"),
-        "ETE Dept": AssetGenerator.create_building_icon("computer"),
-        "Chemical & Physics Dept": AssetGenerator.create_building_icon("lab"),
-        "VIP Lounge": AssetGenerator.create_building_icon("vip"),
-        "ASE & ISE Dept": AssetGenerator.create_building_icon("computer"),
-        "MM Foods": AssetGenerator.create_building_icon("food"),
-        "Kotak Bank ATM": AssetGenerator.create_building_icon("default"),
-        "RV University": AssetGenerator.create_building_icon("default"),
-        "Boys Hostel": AssetGenerator.create_building_icon("hostel"),
-        "Library": AssetGenerator.create_building_icon("library"),
-        "ECE Dept": AssetGenerator.create_building_icon("electronics"),
-    }
+            name: BuildingIconGenerator.get_icon(name, 64)
+            for name in [
+                "Main Entrance", "Kotak Mahindra Bank", "Football & Cricket Ground",
+                "Design Thinking Huddle", "Mechanical Dept", "Biotech Quadrangle", "Green House",
+                "Admin Block", "IEM Auditorium", "RV University", "Chem Engg & Physics Dept",
+                "Civil Dept", "Kriyakalpa", "Thode Aur Canteen", "Telecom Dept",
+                "EEE Dept", "ECE Dept", "Mingos Canteen",
+                "PE & Sports Dept", "CSE Dept", "Health Centre", "Temple",
+                "Krishna Hostel", "Cauvery Boys Hostel", "Mathematics Dept",
+                "Canteen", "Library", "ISE & Aerospace Dept"
+            ]
+        }
 
         
         # Player sprites (animation frames)
@@ -599,18 +1244,19 @@ class RVCECampusRunner:
     def reset_game(self):
         """Properly reset the game state"""
         # Initialize data structures
-        self.game_map = RVCEGameMap(20, 18)
+        self.game_map = RVCEGameMap(40, 36)
         self.nav_graph = RVCEGraph()
         self.undo_stack = UndoStack()
         self.task_manager = TaskManager()
-        # Calculate cell size
+        # Calculate cell size - increased for more zoom/larger nodes
         map_area_width = self.map_width
         map_area_height = self.screen_height - 100
-        self.game_map.cell_size = min(map_area_width // 20, map_area_height // 18)
+        base_cell_size = min(map_area_width // 40, map_area_height // 36)
+        self.game_map.cell_size = int(base_cell_size * 1.5)  # 50% larger for spacious feel
         # Game state - use difficulty settings
         self.hint_cost = self.difficulty_settings[self.difficulty]['hint_cost']
         self.state = GameState.PLAYING
-        self.player_pos = (2, 15)
+        self.player_pos = (9, 1)  # Start at Main Entrance
         self.score = 0
         # Step tracking for efficiency scoring
         self.task_steps = 0  # Actual steps player has taken
@@ -668,21 +1314,25 @@ class RVCECampusRunner:
         self.fog_of_war = FogOfWar(self.game_map.width, self.game_map.height)
         self.fog_of_war.update(self.player_pos)
         
-        # Initialize event manager
-        self.event_manager = EventManager()
-        self.event_manager.set_available_positions(self.game_map, self.tile_map)
+        # Initialize event manager - DISABLED per user request
+        # self.event_manager = EventManager()
+        # self.event_manager.set_available_positions(self.game_map, self.tile_map)
         
-        # Initialize NPC manager
+        # Initialize NPC manager - professors and students for hints
         self.npc_manager = NPCManager()
         self.npc_manager.spawn_npcs(self.game_map, self.buildings)
-
-        npc_radius = self.difficulty_settings[self.difficulty]['npc_alert_radius']
+        
+        # Set NPC detection range for hint proximity (4-5 nodes)
+        self.npc_hint_range = 5  # Player can ask for hint when NPC is within 5 nodes
         for npc in self.npc_manager.npcs:
-            npc.detection_range = npc_radius
+            npc.detection_range = self.npc_hint_range
+        
+        # Track if NPC is nearby for hint notification
+        self.nearby_npc = None
 
         
-        # Initialize mini-map (position in top-right dashboard area)
-        self.mini_map = MiniMap(self.screen_width - 180, 50, 150)
+        # Initialize mini-map (position in bottom-left corner)
+        self.mini_map = MiniMap(20, self.screen_height - 170, 150)
         
         # Setup tasks
         self.setup_academic_tasks()
@@ -694,372 +1344,510 @@ class RVCECampusRunner:
                 self.expected_path_length = len(expected_path)
                 self.task_start_pos = self.player_pos
 
-        # Trigger rain probabilistically based on difficulty
-        rain_chance = self.difficulty_settings[self.difficulty]['rain_chance']
-        if self.event_manager and random.random() < rain_chance:
-            self.event_manager.schedule_event(
-                RainEvent(duration=20 + int(20 * rain_chance))
-            )
+        # Trigger rain probabilistically based on difficulty - DISABLED
+        # rain_chance = self.difficulty_settings[self.difficulty]['rain_chance']
+        # if self.event_manager and random.random() < rain_chance:
+        #     self.event_manager.schedule_event(
+        #         RainEvent(duration=20 + int(20 * rain_chance))
+        #     )
 
         
     def setup_rvce_campus(self):
-        map_data = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,1,1,1,0,0,0,1,1,1,0,0,0,0,1],
-            [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,0,1],
-            [1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1],
-            [1,0,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,0,1,1],
-            [1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1],
-            [1,1,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,1],
-            [1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-            [1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0,1],
-            [1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
-            [1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1],
-            [1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1],
-            [1,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,1],
-            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,1,1,1,0,1,1,1,1,1,1,1,0,1,1,1,1,0,1],
-            [1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
-            [1,1,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,1,1,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        """
+        High-resolution RVCE campus map (40x36)
+        Geometry & distances derived from reference image
+        Roads ONLY where image shows roads
+        """
+    
+        W, H = 40, 36
+        grid = [[1 for _ in range(W)] for _ in range(H)]
+    
+        def road(x1, y1, x2, y2):
+            for y in range(y1, y2):
+                for x in range(x1, x2):
+                    grid[y][x] = 0
+    
+        # ================= MYSORE ROAD (TOP) =================
+        road(0, 2, 40, 4)
+    
+        # ================= MAIN VERTICAL AXIS =================
+        road(18, 4, 22, 30)
+    
+        # ================= PARKING ACCESS =================
+        road(10, 4, 30, 6)
+    
+        # ================= ADMIN LOOP =================
+        road(8, 8, 32, 10)
+        road(8, 10, 10, 18)
+        road(30, 10, 32, 18)
+    
+        # ================= CENTRAL ACADEMIC STRIP =================
+        road(6, 14, 34, 18)  # Extended to y=18 to include IEM Auditorium at y=16
+    
+        # ================= EEE / ECE =================
+        road(22, 16, 26, 26)  # Extended width
+    
+        # ================= LIBRARY ACCESS =================
+        road(10, 26, 32, 30)  # Extended to reach more buildings
+    
+        # ================= HOSTEL ROAD =================
+        road(30, 16, 38, 34)  # Start from y=16 to connect earlier
+        
+        # ================= ADMIN CORE VERTICAL (x=14) =================
+        road(12, 10, 16, 26)  # Vertical road connecting Admin, IEM, RV Univ, Chem Dept
+        
+        # ================= CENTRAL STRIP VERTICAL (x=20) =================
+        road(18, 14, 22, 26)  # Vertical connecting Kriyakalpa, Thode, Telecom
+        
+        # ================= LEFT VERTICAL PATH (DTH -> Mech -> BT-Q -> Green House -> Canteen) =================
+        road(2, 8, 8, 28)  # Wider vertical path from DTH to Canteen area
+        
+        # ================= HORIZONTAL PATH TO CANTEEN =================
+        road(2, 26, 22, 30)  # Connect left vertical to library access road
+        
+        # ================= PATH TO ISE-A =================
+        road(24, 28, 30, 34)  # Connect library area to ISE-A at (26, 30)
+        
+        # ================= ENSURE ALL BUILDING POSITIONS ARE WALKABLE =================
+        # Explicitly make each building cell walkable (value 0)
+        building_positions = [
+            (20, 3), (24, 3), (34, 5),           # Main Entrance, Bank, Sports Ground
+            (4, 9), (4, 13), (4, 17), (4, 21),   # Left Academic
+            (14, 12), (14, 16), (14, 20), (14, 24),  # Admin Core
+            (22, 12), (20, 16), (20, 20), (20, 24),  # Central Strip - Civil, Kriyakalpa, Thode, Telecom
+            (24, 16), (24, 20), (26, 24),        # EEE, ECE, Mingos
+            (32, 12), (32, 16), (32, 20), (34, 20),  # PE Sports, CSE, Health, Temple
+            (32, 24), (32, 28), (26, 30), (32, 32),  # Hostels
+            (10, 27), (20, 28),                   # Canteen, Library
         ]
-        
-        self.game_map.load_rvce_map(map_data)
-        # Note: Graph is built in reset_game after tile_map is set up
-        
-        # Building locations - ON WALKABLE PATHS
+        for pos in building_positions:
+            x, y = pos
+            if 0 <= y < 36 and 0 <= x < 40:
+                grid[y][x] = 0
+                # Also make adjacent cells walkable (connectors to road)
+                for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                    nx, ny = x + dx, y + dy
+                    if 0 <= ny < 36 and 0 <= nx < 40:
+                        grid[ny][nx] = 0
+    
+        self.game_map.load_rvce_map(grid)
+    
+        # ================= BUILDINGS (SCALED POSITIONS) =================
         self.buildings = {
-            "Main Gate": (2, 15),
-            "Admin Block": (3, 3),
-
-            "DTL Innovation Hub": (6, 3),
-            "Mechanical Dept": (11, 3),
-            "Civil Dept": (9, 3),
-
-            "BT Quadrangle": (7, 5),
-            "AI-ML & MCA Dept": (14, 5),
-            "ASE & ISE Dept": (12, 5),
-
-            "BT & EIE Dept": (16, 7),
-            "IEM Dept": (4, 7),
-            "EEE Dept": (9, 7),
-
-            "CSE Dept": (14, 9),
-            "CSE Ground": (12, 9),
-            "ECE Dept": (7, 11),
-            "ETE Dept": (5, 11),
-
-            "Chemical & Physics Dept": (10, 11),
-            "Central Maintenance Office": (3, 11),
-
-            "Library": (11, 13),
-            "MM Foods": (4, 13),
-            "Kotak Bank ATM": (6, 13),
-
-            "VIP Lounge": (9, 13),
-            "RV University": (13, 13),
-
-            "Boys Hostel": (16, 15)
+            # Top
+            "Main Entrance": (20, 3),
+            "Kotak Mahindra Bank": (24, 3),
+            "Football & Cricket Ground": (34, 5),
+    
+            # Left Academic Block
+            "Design Thinking Huddle": (4, 9),
+            "Mechanical Dept": (4, 13),
+            "Biotech Quadrangle": (4, 17),
+            "Green House": (4, 21),
+    
+            # Admin Core
+            "Admin Block": (14, 12),
+            "IEM Auditorium": (14, 16),
+            "RV University": (14, 20),
+            "Chem Engg & Physics Dept": (14, 24),
+    
+            # Central Strip
+            "Civil Dept": (22, 12),
+            "Kriyakalpa": (20, 16),
+            "Thode Aur Canteen": (20, 20),
+            "Telecom Dept": (20, 24),
+    
+            # EEE / ECE
+            "EEE Dept": (24, 16),
+            "ECE Dept": (24, 20),
+            "Mingos Canteen": (26, 24),
+    
+            # Right
+            "PE & Sports Dept": (32, 12),
+            "CSE Dept": (32, 16),
+            "Health Centre": (32, 20),
+            "Temple": (34, 20),
+    
+            # Hostels
+            "Krishna Hostel": (32, 24),
+            "Cauvery Boys Hostel": (32, 28),
+            "ISE & Aerospace Dept": (26, 30),  # Between CBH and Library
+            "Mathematics Dept": (32, 32),
+    
+            # Bottom - Canteen below Chem, left of Library
+            "Canteen": (10, 27),
+            "Library": (20, 28),
         }
 
-    
     def setup_special_tiles(self):
         """Setup special tile types - currently disabled"""
         # All special tiles removed as per user request
         pass
 
     RIDDLE_BANK = {
-        "CSE Ground": {
+        "Main Entrance": {
             "easy": [
-                "Walls do not define this place,\nYet crowds recognize its importance.\nVoices rise, banners appear,\nAnd silence breaks only when needed.",
-                "Neither classroom nor corridor,\nThis space waits patiently.\nWhen people gather,\nIt transforms."
+                "Where journeys begin and farewells are made,\nThis threshold marks transitions in every parade.",
+                "All roads lead here, at least within these walls,\nThe first step of every adventure that calls."
             ],
             "normal": [
-                "Empty most days, alive on special ones,\nThis ground remembers applause.\nThe sky acts as its ceiling.",
-                "No permanent structure commands attention here,\nOnly moments do."
+                "Neither inside nor outside, this space exists between,\nA liminal threshold where all students convene.",
+                "The first impression and the last goodbye,\nWhere campus meets the world under open sky."
             ],
             "hard": [
-                "A concrete philosophy of potential space,\nWhere significance is drawn from the human face.\nIt exists as a field of possible interaction,\nDefined by the crowd's momentary satisfaction."
+                "A symbolic boundary between academic and mundane,\nWhere the pursuit of knowledge first stakes its claim."
             ]
         },
 
-        "Civil Dept": {
+        "Kotak Mahindra Bank": {
             "easy": [
-                "Open to the sky, it waits in quiet repose,\nA blank slate for feet where no corridor goes.\nSilence reigns until a crowd arrives to fill,\nThen it echoes with voices, a stage for their will.",
-            "No lectures are given on this vast, level floor,\nYet it teaches the power a united group has in store.\nFrom silent protest to a festival's sound,\nIts purpose is found when the many are bound."
+                "Numbers unlock resources here.",
+                "Trust flows digitally through secure machines."
             ],
             "normal": [
-                "Gravity is respected here,\nNot challenged.\nDesign bows to physics.",
-                "What stands strong outside\nWas calculated within."
+                "A portal to commerce, to need and to lease,\nWhere stored value finds its local release."
             ],
             "hard": [
-                "The art of predicting what time will degrade,\nAnd designing a defense that will never fade.\nA war against collapse waged with a pen,\nGranting permanence, again and again."
+                "It renders the abstract of credit and save,\nInto tangible notes from its metallic cave."
             ]
         },
 
-        "Admin Block": {
+        "Football & Cricket Ground": {
             "easy": [
-                "No lectures echo here,\nYet decisions linger.\nForms move faster than people.",
-                "Authority does not shout here,\nIt stamps."
+                "Where leather meets willow and goals are scored,\nThis open field is where champions are forged.",
+                "Cheers echo here when victory is near,\nThe playground of athletes throughout the year."
             ],
             "normal": [
-                "Students arrive uncertain,\nLeave with instructions.\nRules sleep inside files.",
-                "Processes outnumber conversations."
+                "Boundaries and goalposts define this space,\nWhere friendly rivalry finds its place.",
+                "Green grass and white lines mark the field of play,\nWhere students compete at the end of each day."
             ],
             "hard": [
-                "A nexus of governance, subdued and austere,\nWhere policy hardens from idea to clear.\nThe engine of function, both feared and beseeched,\nWhere individual will is to procedure leeched."
+                "An arena of physical prowess and sport,\nWhere academic minds find their athletic court."
             ]
         },
 
-        "DTL Innovation Hub": {
+        "Design Thinking Huddle": {
             "easy": [
-                "Failure is expected here,\nAnd encouraged.\nIdeas begin unfinished.",
-                "No syllabus dictates progress,\nOnly curiosity."
+                "Creativity blooms in this space of thought,\nWhere innovative solutions are carefully wrought.",
+                "Ideas flow freely without constraint,\nWhere thinking outside the box has no restraint."
             ],
             "normal": [
-                "Mentors replace lecturers,\nPrototypes replace exams.",
-                "Questions matter more\nThan correct answers."
+                "Brainstorming sessions fill these walls,\nWhere imagination answers the problem's calls."
             ],
             "hard": [
-                "A laboratory for intellectual chance,\nWhere failure is seen as a forward advance.\nA managed environment, carefully sown,\nFor ideas to flourish on their very own"
+                "A laboratory for structured creativity,\nWhere design meets purpose with intentional activity."
             ]
         },
 
         "Mechanical Dept": {
             "easy": [
-                "Motion is explained,\nNot assumed.\nMachines obey laws taught here.",
-                "Energy enters as theory\nAnd exits as movement."
+                "Gears and engines are studied here,\nWhere motion and force become crystal clear.",
+                "Machines obey laws taught in this space,\nWhere physics meets engineering face to face."
             ],
             "normal": [
-                "Heat, force, and motion\nShare equal importance.",
-                "Nothing moves without reason\nInside these walls."
+                "Heat, force, and motion share equal importance,\nNothing moves without reason in this domain of performance."
             ],
             "hard": [
-                "The discipline tasked with the willing command,\nOf energies hidden in water and land.\nTo translate the silent, explosive desire,\nOf atoms and fuels, to turn wheel and tire."
+                "The discipline tasked with the willing command,\nOf energies hidden in fuel and in land."
             ]
         },
 
-        "BT Quadrangle": {
+        "Biotech Quadrangle": {
             "easy": [
-                "An open space surrounded by study,\nWhere discussions spill outside classrooms.",
-                
+                "Open to the sky, surrounded by study,\nWhere discussions spill outside when rooms get muddy.",
+                "A pause between theory sessions, yet still academic,\nLearning continues even without lectures endemic."
             ],
             "normal": [
-                "A pause between theory sessions,\nYet still academic.",
-                "Learning continues even without lectures."
+                "More than a pathway, it's an extended class,\nWhere students on benches watch the world pass."
             ],
             "hard": [
-                "It's more than a pathway, it's an extended class,\nWhere students on benches watch the world pass."
+                "A designed void that creates connection,\nWhere biology students find reflection."
             ]
         },
 
-        "AI-ML & MCA Dept": {
+        "Green House": {
             "easy": [
-                "Machines learn without awareness,\nGuided by humans here.",
-                "Patterns matter more than facts."
+                "Plants grow here under careful watch,\nWhere nature and science make the perfect match.",
+                "Glass walls let sunlight in to stay,\nWhere seedlings become plants day by day."
             ],
             "normal": [
-                "Data replaces intuition,\nModels replace guesses.",
-                "Logic trains systems\nTo imitate thinking."
+                "A controlled environment for growth and study,\nWhere chlorophyll and research become study buddies."
             ],
             "hard": [
-                "The architecture of simulated mind,\nFrom vast correlation, a semblance designed.\nA pursuit of the ghost in the machine's shell,\nThrough algorithms cast like a syntactic spell."
+                "An enclosed ecosystem of botanical research,\nWhere the secrets of photosynthesis wait to emerge."
             ]
         },
 
-        "BT & EIE Dept": {
+        "Admin Block": {
             "easy": [
-                "Living systems meet control logic\nInside.",
-                "Feedback loops define success.\nSignals are sent to a living reply,\nUnder a watchful, instrumental eye."
+                "No lectures echo here, yet decisions linger,\nForms move faster than any student's finger.",
+                "Authority does not shout here, it stamps."
             ],
             "normal": [
-                "Biology is regulated here,\nNot left to chance.",
-                "Chaos of nature meets order's demand,\nGuided not by a whim, but a circuit's command.\nThe rhythm of life is given a beat,\nBy sensors that monitor, prompt, and complete."
+                "Students arrive uncertain, leave with instructions,\nRules sleep inside files awaiting reproductions."
             ],
             "hard": [
-                "Where life meets precision\nThrough instrumentation."
+                "A nexus of governance, subdued and austere,\nWhere policy hardens from idea to clear."
             ]
         },
 
-        "IEM Dept": {
+        "IEM Auditorium": {
             "easy": [
-                "They engineer choices, the how and the when,\nOptimizing the efforts of women and men.\nTheir blueprint is process, their goal is the flow,\nTo make the complex system effortlessly go."
+                "Voices carry here across rows of seats,\nWhere speakers and listeners in ceremony meet.",
+                "The stage awaits performers and orators alike,\nWhere presentations receive both praise and strike."
             ],
             "normal": [
-                "A science of systems, of people and machine,\nOrchestrating a dance that is graceful and lean.\nTheir success is invisible, a smooth operation,\nThe silent conductor of an organization."
+                "Acoustics designed for the spoken word,\nWhere every announcement is clearly heard."
             ],
             "hard": [
-                "The calculus applied to decision and act,\nTo minimize friction in the industrial pact.\nThe mastery of technical complexity's web,\nSo that order from potential chaos may ebb."
-            ]
-        },
-
-        "Central Maintenance Office": {
-            "easy": [
-                "They don't start the day with a theory or quiz,\nBut with work orders listing what is and what fizz'd.\nTheir knowledge is practical, hands-on, and deep,\nIn the hidden veins where the building's life's keep"
-            ],
-            "normal": [
-                "The guardians of normal, the keepers of 'on',\nWho work through the night till the trouble is gone.\nTheir triumph is silence, a system's low hum,\nA battle unseen that is always to come.",
-            ],
-            "hard": [
-                "Operational continuity's hidden cost,\nThe labor that thrives when all else seems lost.\nA recognition-less vigil, a perpetual fix,\nOn the infrastructure on which academia sticks."
-            ]
-        },
-
-        "EEE Dept": {
-            "easy": [
-                "Power listens to them, is bent to their will,\nThrough transformers that step it up or down, silent and still.\nThey speak the language of volts, of amps, and of phase,\nLighting our world in a brilliant, controlled blaze."
-            ],
-            "normal": [
-                "Fields, currents, and systems\nShape modern life."
-            ],
-            "hard": [
-                "The taming of lightning, the bending of fields,\nTo the service that modern existence yields.\nA deep mastery over nature's wild spark,\nTo illuminate both the future and the dark."
-            ]
-        },
-
-        "CSE Dept": {
-            "easy": [
-                "Where thought is transcribed in a syntax so strict,\nAnd given to silicon to enact and predict.\nMachines are made obedient to written command,\nA logic imposed on the circuit's quick hand.",
-                "Instructions are crafted with care and with art,\nTo tell a dumb machine to play its own part.\nFrom simple 'if-else' to structures complex,\nThey build digital minds to perplex and to vex."
-            ],
-            "normal": [
-                "Abstractions take form here, from vague to concrete,\nAs symbols and functions find purchase, complete.\nWhat starts as a notion, a flicker of 'might',\nBecomes an app's window, aglow in the night.",
-                "Code is their clay, the compiler their kiln,\nWhere theoretical designs their reality fulfill.\nThey build worlds from nothing but logic and light,\nArchitects of the virtual, ruling the byte."
-            ],
-            "hard": [
-                "The modern-day sorcery where meaning is caught,\nIn strings of pure symbol, in patterns of thought.\nA place where the abstract is forged into law,\nFor machines to enact without question or flaw."
-            ]
-        },
-
-        "ETE Dept": {
-            "easy": [
-                "Their concern is the journey, not where it begins,\nPreserving the message as the transmission thins.\nAcross wire or air, through noise and through haze,\nThey fight to keep signals from going to graze.",
-                "Distance is the enemy, distortion the thief,\nAnd they are the senders of tonal relief.\nThey package the data, they amplify the call,\nTo ensure that the meaning survives through it all."
-
-            ],
-            "normal": [
-                "Where a whisper of data is launched into space,\nTo find its true home at a relentless pace.\nClarity is the trophy they seek to attain,\nThrough modulation that triumphs over strain.",
-                "It's less about speaking, and more about how,\nThe word can be carried on a carrier's brow.\nThrough channels of chaos, they carve a clean lane,\nFor information to travel, again and again."
-            ],
-            "hard": [
-                "The art of the vessel, the craft of the vein,\nThrough which modern society's thoughts must remain.\nEnsuring the 'what' survives the brutal 'where',\nWith fidelity, speed, and impeccable care."
-            ]
-        },
-
-        "Chemical & Physics Dept": {
-            "easy": [
-                "Matter behaves strangely here,\nYet predictably.",
-                "Forces explain the universe."
-            ],
-            "normal": [
-                "A shared home for the catalyst and the cosmic decree,\nWhere the very small and the very large hold the key.\nExperiments parse what the senses can't see,\nIn a methodical, bold search for what *must* be.",
-                "The pH and the photon are subjects of note,\nThe bond and the boson share chapter and quote.\nExistence itself is the text they must read,\nBy causing events and then watching them bleed."
-            ],
-            "hard": [
-                "The foundational inquiry into stuff and its state,\nThe 'why' of the particle, the 'how' of the fate.\nDecoding the universe, piece by small piece,\nTo grant our perceptions a lasting, new lease"
-            ]
-        },
-
-        "VIP Lounge": {
-            "easy": [
-                "Comfort replaces urgency here.",
-                "Access is limited."
-            ],
-            "normal": [
-                "Status is the key that turns in this lock,\nNot curiosity drawn from a textbook's stock.\nIt's a space for the meeting of influence and plan,\nRemoved from the turbulence of the student clan."
-            ],
-            "hard": [
-                "A curated island within the scholastic sea,\nWhere power can conference, discreetly and free.\nAn anteroom to authority, a place to confer,\nWhere the social mechanics begin to occur."
-            ]
-        },
-
-        "ASE & ISE Dept": {
-            "easy": [
-                "They build what must fly, or in deep oceans glide,\nFirst in simulation, with nothing to hide.\nOn screens, their creations are tested and tossed,\nLong before real-world resources are lost"
-            ],
-            "normal": [
-                "Complex systems are birthed in a digital womb,\nAnd subjected to simulated stress and gloom.\nTrust must be earned through a billion faux-flights,\nBefore something soars through the real, open heights."
-            ],
-            "hard": [
-                "The foresight engineering of systems that move,\nWhere a single flawed variable you cannot approve.\nCrafting obedience in chaotic, fluid space,\nThrough meticulous, virtual, pre-emptive grace."
-            ]
-        },
-
-        "MM Foods": {
-            "easy": [
-                "Hunger interrupts focus,\nThis place restores it.",
-                "\nNot a temple of theory, but of practical need,\nWhere energy levels are topped up with speed."
-            ],
-            "normal": [
-                "Students arrive with a brain-weary sigh,\nAnd leave with a satisfied glint in the eye.\nIt's an external solution, a commercial pact,\nFor the internal fatigue that is simple fact."
-            ],
-            "hard": [
-                "The metabolic pit-stop in the race of the mind,\nAn external solution to internal fatigue."
-            ]
-        },
-        "ECE Dept": {
-            "easy": [
-                "Signals whisper through wires here,\nInvisible yet precise.",
-                "Communication begins\nWith understanding waves."
-            ],
-            "normal": [
-                "Information survives noise\nThrough discipline.",
-                "Clarity is engineered,\nNot assumed."
-            ],
-            "hard": [
-                "The guardians of signal integrity's flame\nIn a universe eager to scatter the same.\nA discipline built on the fragile, pure thread\nCarrying modern world on its thread"
-            ]
-        },
-
-        "Kotak Bank ATM": {
-            "easy": [
-                "Numbers unlock resources here.",
-                "Trust flows digitally."
-            ],
-            "normal": [
-                "It's a portal to commerce, to need and to lease,\n Where your stored, distant value finds a local release."
-            ],
-            "hard": [
-                " It renders the abstract of credit and save,\nInto tangible notes from its metallic cave."
+                "A theater of academic discourse and display,\nWhere knowledge is performed in a structured way."
             ]
         },
 
         "RV University": {
             "easy": [
-                "Another academic presence\nShares the landscape.",
-                "Parallel learning paths exist.\nExisting so tangibly, intimately near."
+                "Another academic presence shares the landscape.",
+                "Parallel learning paths exist, close at hand."
             ],
             "normal": [
-                "Institutions coexist,\nKnowledge overlaps.\n Across invisible borders where students may heed."
+                "Institutions coexist, knowledge overlaps,\nAcross invisible borders where students perhaps."
             ],
             "hard": [
-                "A contiguous, yet distinct ecosystem of mind,\n With its own rhythms and ties that bind."
+                "A contiguous, yet distinct ecosystem of mind,\nWith its own rhythms and ties that bind."
             ]
         },
 
-        "Boys Hostel": {
+        "Chem Engg & Physics Dept": {
             "easy": [
-                "Where the frantic energy of the long day descends,\nRecovery begins.",
-                "Days conclude within.\nUnder a single bulb's light, until dawn."
+                "Molecules and forces are studied here,\nWhere atoms and equations become crystal clear.",
+                "Test tubes and equations share space,\nWhere matter and energy find their place."
             ],
             "normal": [
-                "Shared living defines routine,\nPrivacy is negotiated\nLife is lived here in its mundane, real state,\nBehind every window, a personal fate."
+                "A shared home for chemical and physical decrees,\nWhere experiments unlock nature's mysteries."
             ],
             "hard": [
-                "The residential substrate of academic life,\nWhere one processes the intellectual strife.\n"
+                "The foundational inquiry into matter and state,\nDecoding the universe, piece by piece, to illuminate fate."
+            ]
+        },
+
+        "Civil Dept": {
+            "easy": [
+                "Buildings and bridges are planned in this space,\nWhere structural integrity finds its place.",
+                "Concrete and steel are subjects of study,\nWhere construction meets theory, never muddy."
+            ],
+            "normal": [
+                "Gravity is respected here, not challenged,\nDesign bows to physics, carefully balanced."
+            ],
+            "hard": [
+                "The art of predicting what time will degrade,\nAnd designing defenses that will never fade."
+            ]
+        },
+
+        "Kriyakalpa": {
+            "easy": [
+                "Innovation finds a home in this space,\nWhere creativity meets technology face to face.",
+                "Projects take shape from concept to creation,\nA hub of inventive experimentation."
+            ],
+            "normal": [
+                "Ideas are nurtured from seed to solution,\nWhere problems meet creative resolution."
+            ],
+            "hard": [
+                "A crucible of applied creativity,\nWhere abstractions find their utility."
+            ]
+        },
+
+        "Thode Aur Canteen": {
+            "easy": [
+                "Hunger interrupts focus, this place restores it,\nWhere empty stomachs find their spirit.",
+                "Energy levels get topped up with speed,\nA practical solution for every student's need."
+            ],
+            "normal": [
+                "Students arrive with brain-weary sighs,\nLeave with satisfied glints in their eyes."
+            ],
+            "hard": [
+                "The metabolic pit-stop in the race of the mind,\nAn external solution to internal fatigue mankind."
+            ]
+        },
+
+        "Telecom Dept": {
+            "easy": [
+                "Signals and waves are studied here,\nWhere communication technology becomes clear.",
+                "From radio to fiber, transmission is key,\nUnlocking the secrets of connectivity."
+            ],
+            "normal": [
+                "Distance is the enemy, distortion the thief,\nThey are the senders of tonal relief."
+            ],
+            "hard": [
+                "The art of the vessel, the craft of the vein,\nThrough which modern society's thoughts must remain."
+            ]
+        },
+
+        "EEE Dept": {
+            "easy": [
+                "Power and circuits are mastered here,\nWhere voltage and current become crystal clear.",
+                "They speak the language of volts and phase,\nLighting our world in a controlled blaze."
+            ],
+            "normal": [
+                "Fields, currents, and systems shape modern life,\nWhere electrons flow without any strife."
+            ],
+            "hard": [
+                "The taming of lightning, the bending of fields,\nTo the service that modern existence yields."
+            ]
+        },
+
+        "ECE Dept": {
+            "easy": [
+                "Signals whisper through wires here,\nInvisible yet precise, crystal clear.",
+                "Communication begins with understanding waves,\nFrom microchips to the data that saves."
+            ],
+            "normal": [
+                "Information survives noise through discipline,\nClarity is engineered, not left to whim."
+            ],
+            "hard": [
+                "The guardians of signal integrity's flame,\nIn a universe eager to scatter the same."
+            ]
+        },
+
+        "Mingos Canteen": {
+            "easy": [
+                "A popular spot when hunger calls,\nWhere students gather in crowded halls.",
+                "Snacks and meals to fuel the day,\nA break from books along the way."
+            ],
+            "normal": [
+                "The unofficial meeting place of the campus crowd,\nWhere laughter and chatter are always loud."
+            ],
+            "hard": [
+                "A commercial crossroads of sustenance and social,\nWhere academic discourse becomes less formal."
+            ]
+        },
+
+        "PE & Sports Dept": {
+            "easy": [
+                "Physical education finds its home here,\nWhere fitness and health are held dear.",
+                "Sports equipment and training abound,\nWhere healthy bodies are always found."
+            ],
+            "normal": [
+                "The body is trained as much as the mind,\nLeaving sedentary habits behind."
+            ],
+            "hard": [
+                "A temple to physical excellence and form,\nWhere discipline of the body becomes the norm."
+            ]
+        },
+
+        "CSE Dept": {
+            "easy": [
+                "Code is written and programs run,\nWhere computer science work is done.",
+                "Algorithms and data structures fill the air,\nLogical thinking beyond compare."
+            ],
+            "normal": [
+                "Abstractions take form here, from vague to concrete,\nAs symbols and functions find purchase complete."
+            ],
+            "hard": [
+                "Modern-day sorcery where meaning is caught,\nIn strings of pure symbol, in patterns of thought."
+            ]
+        },
+
+        "Health Centre": {
+            "easy": [
+                "When wellness falters, help is near,\nMedical care waits right here.",
+                "First aid and checkups on campus grounds,\nWhere healing and health abounds."
+            ],
+            "normal": [
+                "A sanctuary of care within academic walls,\nWhere the body's needs answer its calls."
+            ],
+            "hard": [
+                "The institutional response to corporeal need,\nWhere students find relief with haste and speed."
+            ]
+        },
+
+        "Temple": {
+            "easy": [
+                "A quiet space for reflection and prayer,\nWhere spiritual peace fills the air.",
+                "Faith finds expression in this sacred space,\nA moment of calm in the academic race."
+            ],
+            "normal": [
+                "Beyond curricula, the soul finds rest,\nIn this sanctuary considered blessed."
+            ],
+            "hard": [
+                "A designated space for transcendent pursuit,\nWhere the material and spiritual commute."
+            ]
+        },
+
+        "Krishna Hostel": {
+            "easy": [
+                "Where students rest when classes end,\nA home away from home, around the bend.",
+                "Bunk beds and study lamps line the halls,\nResidence life within these walls."
+            ],
+            "normal": [
+                "Shared living defines the routine here,\nPrivacy negotiated, community clear."
+            ],
+            "hard": [
+                "The residential substrate of academic life,\nWhere one processes intellectual strife."
+            ]
+        },
+
+        "Cauvery Boys Hostel": {
+            "easy": [
+                "Another home for students staying on campus,\nWhere daily routines develop their compass.",
+                "Friends are made in common rooms,\nAs academic life around them blooms."
+            ],
+            "normal": [
+                "Community living with structured routine,\nWhere independence meets supported scene."
+            ],
+            "hard": [
+                "An institutional dwelling for the scholarly traveler,\nWhere the chaos of youth finds its leveler."
+            ]
+        },
+
+        "Mathematics Dept": {
+            "easy": [
+                "Numbers and proofs are pondered here,\nWhere theorems and equations become clear.",
+                "Abstract thinking reaches new heights,\nIn the pursuit of mathematical insights."
+            ],
+            "normal": [
+                "Pure logic distilled to elegant form,\nWhere patterns and proofs are the norm."
+            ],
+            "hard": [
+                "The language of the universe decoded and taught,\nWhere abstract beauty is carefully wrought."
+            ]
+        },
+
+        "Canteen": {
+            "easy": [
+                "Hunger drives students to this central spot,\nWhere food and friends are always sought.",
+                "Between classes, this is where you go,\nTo refuel and let your energy flow."
+            ],
+            "normal": [
+                "The unofficial meeting place of campus life,\nWhere hunger meets relief from strife."
+            ],
+            "hard": [
+                "A communal crossroads of sustenance and social,\nWhere academic discourse becomes less formal."
             ]
         },
 
         "Library": {
             "easy": [
-                "Silence amplifies learning.",
-                "Knowledge waits patiently.\nA temple where intellect finds its best taste"
+                "Silence amplifies learning here,\nKnowledge waits on shelves, crystal clear.",
+                "Books and journals line the walls,\nWhere focused study answers its calls."
             ],
             "normal": [
-                "Information organized across time.\nIs captured and ordered in this single place.\nThe past is on loan here, the future is penned,\nIn the quiet, fierce focus that has no end"
+                "Information organized across time,\nCaptured and ordered in logical rhyme."
             ],
             "hard": [
-                "A disciplined archive Of thought.\nA bridge built from paper across the idea-beam.\n Where solitude and collected wisdom meet,\nTo make the individual mind complete."
+                "A disciplined archive of accumulated thought,\nWhere solitude and collected wisdom are sought."
+            ]
+        },
+
+        "ISE & Aerospace Dept": {
+            "easy": [
+                "Systems and software meet in this place,\nWhere engineering takes to space.",
+                "Information systems and flying machines,\nStudied together in innovative scenes."
+            ],
+            "normal": [
+                "Complex systems are analyzed and designed,\nWhere software and hardware are intertwined."
+            ],
+            "hard": [
+                "The foresight engineering of systems that fly,\nWhere meticulous planning reaches for the sky."
             ]
         }
     }
@@ -1188,53 +1976,36 @@ class RVCECampusRunner:
                 py = target_pos[1] * self.game_map.cell_size + map_offset_y + self.game_map.cell_size // 2
                 self.spawn_celebration_particles(px, py)
                 
-                # Calculate efficiency bonus/penalty
-                base_points = current_task['points']
-                efficiency_bonus = 0
-                efficiency_message = ""
+                # ========== NEW SCORING SYSTEM ==========
+                # Base: 50 points for reaching building
+                base_points = 50
+                score_message = f"+{base_points} base"
+                total_points = base_points
                 
-                if self.expected_path_length > 0 and self.task_steps > 0:
-                    # Calculate efficiency ratio
-                    efficiency = self.expected_path_length / self.task_steps
+                # Bonus +20: Did NOT use B or A keys (pathfinding)
+                no_pathfinding_bonus = 0
+                if not self.used_pathfinding:
+                    no_pathfinding_bonus = 20
+                    total_points += no_pathfinding_bonus
+                    score_message += f" +{no_pathfinding_bonus} (no pathfinding)"
                     
-                    if efficiency > 1.2:  # Beat expected path by 20%+
-                        # Excellent - teleportation used effectively!
-                        efficiency_bonus = int(base_points * 0.5 * (efficiency - 1))
-                        efficiency_message = f" +{efficiency_bonus} EFFICIENCY BONUS (portals!)"
+                    # Bonus +30: Reached via optimal path (requires no pathfinding)
+                    if self.expected_path_length > 0 and self.task_steps <= self.expected_path_length:
+                        optimal_bonus = 30
+                        total_points += optimal_bonus
+                        score_message += f" +{optimal_bonus} OPTIMAL PATH!"
                         if self.sound_manager:
                             self.sound_manager.play('victory')
-                    elif efficiency > 1.0:  # Beat expected path slightly
-                        efficiency_bonus = int(base_points * 0.25)
-                        efficiency_message = f" +{efficiency_bonus} efficiency bonus"
-                    elif efficiency > 0.8:  # Close to optimal
-                        efficiency_message = " (efficient path)"
-                    elif efficiency > 0.5:  # Took extra steps
-                        efficiency_bonus = -int(base_points * 0.1)
-                        efficiency_message = f" {efficiency_bonus} (longer route)"
-                    else:  # Very inefficient
-                        efficiency_bonus = -int(base_points * 0.2)
-                        efficiency_message = f" {efficiency_bonus} (took many detours)"
                 
-                total_points = base_points + efficiency_bonus
+                self.score += total_points
                 
-                # Independent path discovery bonus (+20 if found shortest path without using B/A)
-                independent_bonus = 0
-                if not self.used_pathfinding and self.task_steps <= self.expected_path_length + 2:
-                    # Player found near-optimal path without using pathfinding keys!
-                    independent_bonus = self.independent_bonus
-                    efficiency_message += f" +{independent_bonus} DISCOVERY BONUS!"
-                    if self.sound_manager:
-                        self.sound_manager.play('victory')
-                
-                self.score += total_points + independent_bonus
-                
-                print(f"✓ Task Completed: {current_task['name']} (+{base_points} base{efficiency_message})")
+                print(f"✓ Task Completed: {current_task['name']} ({score_message})")
                 print(f"   Path: {self.task_steps} steps vs {self.expected_path_length} expected (BFS optimal)")
                 
-                if self.sound_manager and efficiency_bonus <= 0 and independent_bonus == 0:
+                if self.sound_manager:
                     self.sound_manager.play('task_complete')
                 
-                # Check for level up
+                # Check for level up (new titles: Fresher, Sophomore, Senior, Super Senior)
                 old_level = self.current_level
                 for level in [3, 2, 1]:
                     if self.score >= self.level_thresholds[level]:
@@ -1445,13 +2216,14 @@ class RVCECampusRunner:
                             self.path_algorithm = "BFS"
                             self.used_pathfinding = True  # Track that player used pathfinding
                             print(f"✓ BFS Path: {len(self.current_path)} cells, {self.algorithm_stats['BFS']} nodes explored")
-                    elif event.key == pygame.K_a:
-                        if self.task_manager.current_task:
-                            target = self.buildings[self.task_manager.current_task['building']]
-                            self.current_path = self.find_path_astar(self.player_pos, target)
-                            self.path_algorithm = "A*"
-                            self.used_pathfinding = True  # Track that player used pathfinding
-                            print(f"✓ A* Path: {len(self.current_path)} cells, {self.algorithm_stats['A*']} nodes explored")
+                    # A* search disabled - using BFS only
+                    # elif event.key == pygame.K_a:
+                    #     if self.task_manager.current_task:
+                    #         target = self.buildings[self.task_manager.current_task['building']]
+                    #         self.current_path = self.find_path_astar(self.player_pos, target)
+                    #         self.path_algorithm = "A*"
+                    #         self.used_pathfinding = True
+                    #         print(f"✓ A* Path: {len(self.current_path)} cells, {self.algorithm_stats['A*']} nodes explored")
                     elif event.key == pygame.K_c:
                         self.current_path = []
                     elif event.key == pygame.K_p:
@@ -1485,21 +2257,30 @@ class RVCECampusRunner:
                     elif event.key == pygame.K_MINUS:
                         if self.camera:
                             self.camera.zoom_out()
-                    # H key to show/toggle hint
+                    # H key to show/toggle hint - ONLY works when NPC is nearby
                     elif event.key == pygame.K_h:
                         if self.task_manager.current_task:
-                            if not self.show_hint:
-                                # First time showing hint for this task
-                                if not self.hint_used:
-                                    self.score = max(0, self.score - self.hint_cost)
-                                    self.hint_used = True
-                                    self.ui_message = f"Hint used! (-{self.hint_cost} pts)"
-                                    self.ui_message_timer = 2.0
-                                    if self.sound_manager:
-                                        self.sound_manager.play('alert')
-                                self.show_hint = True
+                            # Check if an NPC is nearby (within hint range)
+                            if self.nearby_npc:
+                                if not self.show_hint:
+                                    # First time showing hint for this task
+                                    if not self.hint_used:
+                                        self.score = self.score - self.hint_cost  # Allow negative
+                                        self.hint_used = True
+                                        npc_label = self.nearby_npc.get_label()
+                                        self.ui_message = f"{npc_label} gave you a hint! (-{self.hint_cost} pts)"
+                                        self.ui_message_timer = 2.0
+                                        if self.sound_manager:
+                                            self.sound_manager.play('npc_talk')
+                                    self.show_hint = True
+                                else:
+                                    self.show_hint = False
                             else:
-                                self.show_hint = False
+                                # No NPC nearby - show message
+                                self.ui_message = "Find a professor or student to ask for hints!"
+                                self.ui_message_timer = 2.0
+                                if self.sound_manager:
+                                    self.sound_manager.play('alert')
                 
                 elif self.state == GameState.PAUSED:
                     if event.key == pygame.K_p:
@@ -1567,6 +2348,8 @@ class RVCECampusRunner:
                     self.state = GameState.NAME_ENTRY
                 else:
                     self.state = GameState.GAME_OVER
+                    if self.sound_manager:
+                        self.sound_manager.play('game_over')
         
         # Update animations
         self.animation_time = current_time / 1000.0
@@ -1628,29 +2411,59 @@ class RVCECampusRunner:
         
         # Update NPCs
         if self.npc_manager:
-            self.npc_manager.update(dt, self.player_pos, self.game_map, self.find_path_astar)
+            # Use BFS for NPC pathfinding since A* is disabled
+            self.npc_manager.update(dt, self.player_pos, self.game_map, self.find_path_bfs)
             
-            # Check for nearby NPC (for E key interaction)
-            self.nearby_npc = self.npc_manager.check_interaction(self.player_pos)
-            if self.nearby_npc and not self.nearby_npc.has_interacted and self.ui_message is None:
-                # Show prompt to press E
-                if self.ui_message != "Press E to talk":
-                    self.ui_message = "Press E to talk"
-                    self.ui_message_timer = 0.5
-            elif self.ui_message == "Press E to talk":
+            # Check for nearby NPC within hint range (5 nodes for hint access)
+            self.nearby_npc = None
+            for npc in self.npc_manager.npcs:
+                dx = self.player_pos[0] - npc.pos[0]
+                dy = self.player_pos[1] - npc.pos[1]
+                distance = (dx * dx + dy * dy) ** 0.5
+                if distance <= self.npc_hint_range:
+                    self.nearby_npc = npc
+                    break
+            
+            # Show hint prompt when NPC is nearby
+            if self.nearby_npc and not self.hint_used and self.ui_message is None:
+                npc_label = self.nearby_npc.get_label()
+                self.ui_message = f"{npc_label} nearby! Press [H] for hint (-15 pts)"
+                self.ui_message_timer = 0.5
+            elif self.ui_message and "Press [H]" in str(self.ui_message) and not self.nearby_npc:
                 self.ui_message = None
     
     def draw_gradient_background(self):
         for y in range(self.screen_height):
             t = y / self.screen_height
-            r = int(20 + 30 * t)
-            g = int(40 + 60 * t)
-            b = int(70 + 90 * t)
+    
+            if t < 0.35:  # Sky
+                r = int(90 + 80 * t)
+                g = int(140 + 80 * t)
+                b = int(200 + 40 * t)
+            elif t < 0.7:  # Green campus
+                tt = (t - 0.35) / 0.35
+                r = int(60 - 10 * tt)
+                g = int(160 + 40 * tt)
+                b = int(90 - 20 * tt)
+            else:  # Walkways / ground
+                tt = (t - 0.7) / 0.3
+                r = int(120 + 40 * tt)
+                g = int(110 + 30 * tt)
+                b = int(90 + 20 * tt)
+    
             pygame.draw.line(self.screen, (r, g, b), (0, y), (self.screen_width, y))
-        for _ in range(3000):
+    
+        # Subtle campus life details
+        for _ in range(1200):
             x = random.randint(0, self.screen_width)
-            y = random.randint(0, self.screen_height)
-            self.screen.set_at((x, y), (20, 20, 30))
+            y = random.randint(int(self.screen_height * 0.35), self.screen_height)
+            color = random.choice([
+                (90, 180, 110),
+                (120, 200, 140),
+                (200, 160, 80)
+            ])
+            self.screen.set_at((x, y), color)
+
     
     def draw(self):
         # Handle menu screen drawing
@@ -1759,54 +2572,7 @@ class RVCECampusRunner:
                         fog_surface = pygame.Surface((cell_size, cell_size), pygame.SRCALPHA)
                         fog_surface.fill((0, 0, 0, fog_alpha))
                         self.screen.blit(fog_surface, rect.topleft)           
-            # === CAMPUS ZONE BACKGROUNDS (visual grouping) ===
-            zone_color = (120, 120, 200, 25)
-            zone_surface = pygame.Surface((cell_size * 6, cell_size * 6), pygame.SRCALPHA)
-            zone_surface.fill(zone_color)
-
-            zones=[
-                (6,5),
-                (14,9),
-                (16,15)
-            ]
-            for zx, zy in zones:
-                wx = zx * self.game_map.cell_size
-                wy = zy * self.game_map.cell_size
-                sx, sy= self.camera.world_to_screen(wx,wy)
-                self.screen.blit(zone_surface,(sx-cell_size*2,sy-cell_size*2))
-
-            # === ZONE LABELS ===
-            zone_labels = {
-                (6, 5): "Biotech Zone",
-                (14, 9): "CSE / ECE Zone",
-                (16, 15): "Residential"
-            }
-
-            for (zx, zy), label in zone_labels.items():
-                wx = zx * self.game_map.cell_size
-                wy = zy * self.game_map.cell_size
-                sx, sy = self.camera.world_to_screen(wx, wy)
-
-                txt = self.large_font.render(label, True, (180, 180, 200))
-                self.screen.blit(txt, (sx - 40, sy - 30))
-
-
-            # === LANDMARKS (non-interactive, visual anchors) ===
-            landmarks = {
-                "Main Ground": (12, 9),
-                "Main Gate": (2, 15)
-            }
-
-            for lname, (lx, ly) in landmarks.items():
-                wx = lx * self.game_map.cell_size
-                wy = ly * self.game_map.cell_size
-                sx, sy = self.camera.world_to_screen(wx, wy)
-
-                radius = int(cell_size * 1.2)
-                pygame.draw.circle(self.screen, (90, 160, 120), (sx + cell_size//2, sy + cell_size//2), radius)
-
-                label = self.small_font.render(lname, True, (220, 220, 220))
-                self.screen.blit(label, (sx - 10, sy - 20))
+            # (Zone backgrounds, zone labels, and landmarks removed per user request)
 
             # Draw animated path
             if self.current_path:
@@ -1870,53 +2636,63 @@ class RVCECampusRunner:
                 
                 if name in self.building_icons:
                     icon = self.building_icons[name]
-                    icon_size = cell_size - 14
+                    # Use a fixed icon size that's visible (icons have labels built-in)
+                    icon_size = max(48, cell_size * 2)  # Minimum 48px for visibility
                     icon_scaled = pygame.transform.scale(icon, (icon_size, icon_size))
                     self.screen.blit(icon_scaled, (rect.centerx - icon_size // 2, rect.centery - icon_size // 2))
                 label_map = {
-                    "Main Gate": "GATE",
-                    "Admin Block": "ADMIN",
-
-                    "DTL Innovation Hub": "DTL",
+                    # Main Entrance area
+                    "Main Entrance": "GATE",
+                    "Kotak Mahindra Bank": "BANK",
+                    "Football & Cricket Ground": "SPORTS",
+                    
+                    # Left side buildings
+                    "Design Thinking Huddle": "DTH",
                     "Mechanical Dept": "MECH",
-                    "Civil Dept": "CIVIL",
-
-                    "BT Quadrangle": "BT-Q",
-                    "AI-ML & MCA Dept": "AI/ML",
-                    "ASE & ISE Dept": "ASE",
-
-                    "BT & EIE Dept": "BT-EIE",
-                    "IEM Dept": "IEM",
-                    "EEE Dept": "EEE",
-
-                    "CSE Dept": "CSE",
-                    "CSE Ground": "CSE-G",
-                    "ECE Dept": "ECE",
-                    "ETE Dept": "ETE",
-
-                    "Chemical & Physics Dept": "CHEM",
-                    "Central Maintenance Office": "CMO",
-
-                    "Library": "LIB",
-                    "MM Foods": "FOOD",
-                    "Kotak Bank ATM": "ATM",
-
-                    "VIP Lounge": "VIP",
+                    "Biotech Quadrangle": "BT-Q",
+                    "Green House": "GREEN",
+                    
+                    # Admin and central buildings
+                    "Admin Block": "ADMIN",
+                    "IEM Auditorium": "IEM",
                     "RV University": "RVU",
-
-                    "Boys Hostel": "HOSTEL"
+                    "Chem Engg & Physics Dept": "CHEM",
+                    
+                    # Central area
+                    "Civil Dept": "CIVIL",
+                    "Kriyakalpa": "KRIYA",
+                    "Thode Aur Canteen": "FOOD",
+                    "Telecom Dept": "TELE",
+                    
+                    # EEE and ECE area
+                    "EEE Dept": "EEE",
+                    "ECE Dept": "ECE",
+                    "Mingos Canteen": "MINGO",
+                    
+                    # Right side - Sports & Hostels
+                    "PE & Sports Dept": "PE",
+                    "CSE Dept": "CSE",
+                    "Health Centre": "MED",
+                    "Temple": "TEMPLE",
+                    "Krishna Hostel": "KH",
+                    "Cauvery Boys Hostel": "CBH",
+                    "Mathematics Dept": "MATH",
+                    
+                    # Library and bottom area
+                    "Canteen": "CANTEEN",
+                    "Library": "LIB",
+                    "ISE & Aerospace Dept": "ISE-A",
                 }
                 
                 
-                short = label_map.get(name)
-                if short:
-                    tag = self.small_font.render(short, True, (240, 240, 240))
-                    tag_rect = tag.get_rect(center=rect.center)
-
-                    bg = tag_rect.inflate(6, 4)
-                    pygame.draw.rect(self.screen, (20, 20, 30), bg, border_radius=4)
-
-                    self.screen.blit(tag, tag_rect)
+                # Labels are now built into the icons, so no need for separate text rendering
+                # short = label_map.get(name)
+                # if short:
+                #     tag = self.small_font.render(short, True, (240, 240, 240))
+                #     tag_rect = tag.get_rect(center=rect.center)
+                #     bg = tag_rect.inflate(6, 4)
+                #     pygame.draw.rect(self.screen, (20, 20, 30), bg, border_radius=4)
+                #     self.screen.blit(tag, tag_rect)
 
             # Draw NPCs
             if self.npc_manager:
@@ -2023,18 +2799,18 @@ class RVCECampusRunner:
                                   target_pos, npcs, self.fog_of_war)
         
             
-            # Draw event warnings
-            if self.event_manager:
-                if self.event_manager.is_fire_drill_active():
-                    warning_font = pygame.font.SysFont('Segoe UI', 20, bold=True)
-                    warning = warning_font.render("🚨 FIRE DRILL IN PROGRESS!", True, (255, 100, 100))
-                    self.screen.blit(warning, (self.screen_width // 3 - 100, 80))
-                    
-                rain_intensity = self.event_manager.get_rain_intensity()
-                if rain_intensity > 1:
-                    rain_font = pygame.font.SysFont('Segoe UI', 18)
-                    rain = rain_font.render("🌧 Rain - Movement Slowed", True, (150, 180, 255))
-                    self.screen.blit(rain, (self.screen_width // 3 - 80, 80))
+            # Draw event warnings - DISABLED per user request
+            # if self.event_manager:
+            #     if self.event_manager.is_fire_drill_active():
+            #         warning_font = pygame.font.SysFont('Segoe UI', 20, bold=True)
+            #         warning = warning_font.render("🚨 FIRE DRILL IN PROGRESS!", True, (255, 100, 100))
+            #         self.screen.blit(warning, (self.screen_width // 3 - 100, 80))
+            #         
+            #     rain_intensity = self.event_manager.get_rain_intensity()
+            #     if rain_intensity > 1:
+            #         rain_font = pygame.font.SysFont('Segoe UI', 18)
+            #         rain = rain_font.render("🌧 Rain - Movement Slowed", True, (150, 180, 255))
+            #         self.screen.blit(rain, (self.screen_width // 3 - 80, 80))
         
         else:
             # Fallback to original drawing (no camera)
