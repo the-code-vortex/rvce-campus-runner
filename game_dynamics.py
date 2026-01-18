@@ -562,8 +562,8 @@ class Camera:
         self.target_y = 0
         
         # Zoom level (1.0 = normal, 2.0 = zoomed in 2x)
-        self.zoom = 1.5
-        self.target_zoom = 1.5
+        self.zoom = 2.0
+        self.target_zoom = 2.0
         self.min_zoom = 0.8
         self.max_zoom = 2.5
         

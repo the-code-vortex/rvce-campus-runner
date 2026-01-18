@@ -1057,8 +1057,9 @@ class Particle:
 class RVCECampusRunner:
     def __init__(self):
         pygame.init()
-        # Fullscreen mode
-        self.screen = pygame.display.set_mode((1280, 800))
+        # Fullscreen mode - get actual display size
+        display_info = pygame.display.Info()
+        self.screen = pygame.display.set_mode((display_info.current_w, display_info.current_h), pygame.FULLSCREEN)
         self.screen_width = self.screen.get_width()
         self.screen_height = self.screen.get_height()
         self.PANEL_RATIO = 0.30
@@ -1270,6 +1271,9 @@ class RVCECampusRunner:
         self.current_path = []
         self.path_algorithm = "BFS"
         self.algorithm_stats = {"BFS": 0, "A*": 0}
+        
+        # Grid display toggle (G key) - off by default
+        self.show_grid = False
         
         # Clear particles
         self.particles = []
@@ -1912,6 +1916,11 @@ class RVCECampusRunner:
             
             for neighbor in self.nav_graph.adj_list[current]:
                 if neighbor not in visited:
+                    # Skip construction tiles (dynamic obstacles)
+                    nx, ny = neighbor
+                    if self.tile_map and 0 <= ny < len(self.tile_map) and 0 <= nx < len(self.tile_map[0]):
+                        if self.tile_map[ny][nx] == TileType.CONSTRUCTION:
+                            continue
                     visited.add(neighbor)
                     parent[neighbor] = current
                     bfs_queue.enqueue(neighbor)
@@ -2232,6 +2241,11 @@ class RVCECampusRunner:
                     #         print(f"✓ A* Path: {len(self.current_path)} cells, {self.algorithm_stats['A*']} nodes explored")
                     elif event.key == pygame.K_c:
                         self.current_path = []
+                    elif event.key == pygame.K_g:
+                        # Toggle grid display
+                        self.show_grid = not self.show_grid
+                        self.ui_message = f"Grid: {'ON' if self.show_grid else 'OFF'}"
+                        self.ui_message_timer = 1.0
                     elif event.key == pygame.K_p:
                         self.state = GameState.PAUSED
                     elif event.key == pygame.K_n:
@@ -2536,8 +2550,12 @@ class RVCECampusRunner:
             self.game_map.grid[y][x] = 1  # Mark as blocked
             self.construction_sites.append((x, y, self.construction_duration))
         
-        self.ui_message = f"🚧 Construction ahead! Route blocked"
+        self.ui_message = f"🚧 Construction ahead! Press B to reroute"
         self.ui_message_timer = 3.0
+        
+        # Clear current path so player must recalculate around obstacle
+        self.current_path = []
+        
         if self.sound_manager:
             self.sound_manager.play('alert')
 
@@ -2604,8 +2622,8 @@ class RVCECampusRunner:
             pygame.display.flip()
             return
         
-        # Background
-        self.draw_gradient_background()
+        # Background - solid dark green campus color (no gradient)
+        self.screen.fill((60, 100, 70))  # Dark green campus background
         self.screen.set_clip(pygame.Rect(0, 0, self.map_width, self.screen_height))
 
         # Use camera-based rendering if available
@@ -2615,13 +2633,9 @@ class RVCECampusRunner:
             
             for y in range(self.game_map.height):
                 for x in range(self.game_map.width):
-                    # Check visibility with camera
+                    # Calculate world and screen positions
                     world_x = x * self.game_map.cell_size
                     world_y = y * self.game_map.cell_size
-                    
-                    if not self.camera.is_visible(world_x / self.game_map.cell_size, 
-                                                   world_y / self.game_map.cell_size, margin=2):
-                        continue
                     
                     screen_x, screen_y = self.camera.world_to_screen(world_x, world_y)
                     rect = pygame.Rect(screen_x, screen_y, cell_size, cell_size)
@@ -2637,59 +2651,66 @@ class RVCECampusRunner:
                     
                     # Get tile type
                     tile_type = self.tile_map[y][x] if self.tile_map else TileType.NORMAL
+                    is_walkable = self.game_map.grid[y][x] == 0
                     
-                    # Draw tile based on type
-                    if tile_type == TileType.WALL:
-                        texture = pygame.transform.scale(self.brick_texture, (cell_size, cell_size))
-                        self.screen.blit(texture, rect.topleft)
-                    elif tile_type in TILE_PROPERTIES:
-                        props = TILE_PROPERTIES[tile_type]
+                    # Draw tile based on walkability
+                    if tile_type == TileType.WALL or not is_walkable:
+                        # GRASS - non-walkable areas
+                        base_green = (80, 160, 90)
+                        pygame.draw.rect(self.screen, base_green, rect)
+                        # Add grass texture dots
+                        if cell_size > 10:
+                            for _ in range(3):
+                                gx = rect.x + random.randint(2, cell_size - 2)
+                                gy = rect.y + random.randint(2, cell_size - 2)
+                                pygame.draw.circle(self.screen, (70, 150, 80), (gx, gy), 1)
+                    elif tile_type == TileType.CONSTRUCTION:
+                        # CONSTRUCTION - orange with red X
+                        pygame.draw.rect(self.screen, (200, 120, 50), rect)
+                        pygame.draw.line(self.screen, (200, 30, 30), 
+                                       (rect.x + 5, rect.y + 5), 
+                                       (rect.x + cell_size - 5, rect.y + cell_size - 5), 4)
+                        pygame.draw.line(self.screen, (200, 30, 30), 
+                                       (rect.x + cell_size - 5, rect.y + 5), 
+                                       (rect.x + 5, rect.y + cell_size - 5), 4)
+                        pygame.draw.rect(self.screen, (150, 80, 30), rect, 2)
+                    else:
+                        # ROAD - walkable path
+                        pygame.draw.rect(self.screen, (60, 60, 65), rect)
+                        # Road tile - no border (cleaner look)
                         
-                        # Special rendering for construction sites
-                        if tile_type == TileType.CONSTRUCTION:
-                            # Orange background
-                            pygame.draw.rect(self.screen, (200, 120, 50), rect)
-                            # Red X to indicate blocked
-                            pygame.draw.line(self.screen, (200, 30, 30), 
-                                           (rect.x + 5, rect.y + 5), 
-                                           (rect.x + cell_size - 5, rect.y + cell_size - 5), 4)
-                            pygame.draw.line(self.screen, (200, 30, 30), 
-                                           (rect.x + cell_size - 5, rect.y + 5), 
-                                           (rect.x + 5, rect.y + cell_size - 5), 4)
-                            # Border
-                            pygame.draw.rect(self.screen, (150, 80, 30), rect, 2)
-                        else:
-                            pygame.draw.rect(self.screen, (70, 75, 90), rect)
-                            # Road center line (subtle)
+                        # Dashed lane marking (for larger cells)
+                        if cell_size > 20:
+                            cx = rect.centerx
                             pygame.draw.line(
                                 self.screen,
-                                (100, 105, 130),
-                                (rect.centerx, rect.y + 6),
-                                (rect.centerx, rect.bottom - 6),
-                                1
+                                (120, 120, 120),
+                                (cx, rect.top + 4),
+                                (cx, rect.bottom - 4),
+                                2
                             )
-                        # Add tile indicators
+                        
+                        # Add tile-specific indicators
                         if tile_type == TileType.ICE:
                             pygame.draw.line(self.screen, (200, 240, 255), 
                                            (rect.x + 5, rect.y + 10), (rect.x + cell_size - 5, rect.y + 10), 2)
                         elif tile_type == TileType.PORTAL_A or tile_type == TileType.PORTAL_B:
-                            pygame.draw.circle(self.screen, (255, 255, 255), rect.center, cell_size // 4, 2)
+                            pygame.draw.circle(self.screen, (200, 100, 255), rect.center, cell_size // 4)
                         elif tile_type == TileType.TRAP:
-                            pygame.draw.line(self.screen, (255, 255, 100), 
+                            pygame.draw.line(self.screen, (255, 100, 100), 
                                            (rect.x + 5, rect.y + 5), (rect.x + cell_size - 5, rect.y + cell_size - 5), 2)
-                            pygame.draw.line(self.screen, (255, 255, 100), 
+                            pygame.draw.line(self.screen, (255, 100, 100), 
                                            (rect.x + cell_size - 5, rect.y + 5), (rect.x + 5, rect.y + cell_size - 5), 2)
                         elif tile_type == TileType.BOOSTER:
-                            pygame.draw.polygon(self.screen, (255, 255, 200), [
+                            pygame.draw.polygon(self.screen, (255, 220, 50), [
                                 (rect.centerx, rect.y + 5),
                                 (rect.x + 5, rect.y + cell_size - 5),
                                 (rect.x + cell_size - 5, rect.y + cell_size - 5)
                             ])
-                    else:
-                        texture = pygame.transform.scale(self.path_texture, (cell_size, cell_size))
-                        self.screen.blit(texture, rect.topleft)
                     
-                    pygame.draw.rect(self.screen, (20, 25, 35), rect, 1)
+                    # Grid lines - only if show_grid is ON
+                    if self.show_grid:
+                        pygame.draw.rect(self.screen, (40, 45, 55), rect, 1)
                     
                     # Apply fog overlay for explored but not visible tiles
                     if fog_alpha > 0:
@@ -2763,6 +2784,13 @@ class RVCECampusRunner:
                     # Use a fixed icon size that's visible (icons have labels built-in)
                     icon_size = max(48, cell_size * 2)  # Minimum 48px for visibility
                     icon_scaled = pygame.transform.scale(icon, (icon_size, icon_size))
+                    
+                    # Draw shadow under the icon for depth
+                    shadow_surface = pygame.Surface((icon_size, icon_size // 3), pygame.SRCALPHA)
+                    pygame.draw.ellipse(shadow_surface, (0, 0, 0, 80), shadow_surface.get_rect())
+                    self.screen.blit(shadow_surface, (rect.centerx - icon_size // 2, rect.centery + icon_size // 3))
+                    
+                    # Draw the icon
                     self.screen.blit(icon_scaled, (rect.centerx - icon_size // 2, rect.centery - icon_size // 2))
                 label_map = {
                     # Main Entrance area
@@ -3057,7 +3085,7 @@ class RVCECampusRunner:
         
         # === GAME STATE OVERLAYS ===
         if self.state == GameState.PAUSED:
-            self.draw_overlay("⏸ PAUSED", "Press P to continue | M - Menu", (255, 220, 100))
+            self.draw_overlay("⏸ PAUSED", "P - Continue | R - Restart | M - Menu", (255, 220, 100))
         elif self.state == GameState.VICTORY:
             self.draw_overlay("🏆 VICTORY!", f"Score: {self.score} | R - Restart | M - Menu", (100, 255, 150))
         elif self.state == GameState.GAME_OVER:
