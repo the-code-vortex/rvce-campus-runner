@@ -2722,7 +2722,7 @@ class RVCECampusRunner:
             # Draw animated path
             if self.current_path:
                 if self.path_algorithm == "BFS":
-                    path_color = (50, 255, 100)
+                    path_color = (255, 105, 180)  # Pink (hot pink)
                 elif self.path_algorithm == "A*":
                     path_color = (100, 150, 255)
                 else:
